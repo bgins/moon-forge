@@ -1,4 +1,4 @@
-module Main exposing (Document, Model, Msg(..), init, main, subscriptions, update, view)
+port module Main exposing (Document, Model, Msg(..), init, main, subscriptions, update, view)
 
 import Browser
 import Element exposing (..)
@@ -10,6 +10,7 @@ import Element.Input as Input
 import Fonts
 import Html exposing (Html)
 import Html.Attributes exposing (title)
+import Json.Encode as E
 
 
 
@@ -109,8 +110,7 @@ filterToString filter =
 
 
 type Msg
-    = Nop
-    | ToggleOscillator Oscillator
+    = ToggleOscillator Oscillator
     | AdjustAmpEnvAttack Float
     | AdjustAmpEnvDecay Float
     | AdjustAmpEnvSustain Float
@@ -128,72 +128,69 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Nop ->
-            ( model, Cmd.none )
-
         ToggleOscillator selectedOsc ->
             ( { model | osc = selectedOsc }
-            , Cmd.none
+            , adjustAudioParam "osc" (E.string <| oscToString selectedOsc)
             )
 
         AdjustAmpEnvAttack newVal ->
             ( { model | ampEnvAttack = newVal }
-            , Cmd.none
+            , adjustAudioParam "ampEnvAttack" (E.float newVal)
             )
 
         AdjustAmpEnvDecay newVal ->
             ( { model | ampEnvDecay = newVal }
-            , Cmd.none
+            , adjustAudioParam "ampEnvDecay" (E.float newVal)
             )
 
         AdjustAmpEnvSustain newVal ->
             ( { model | ampEnvSustain = newVal }
-            , Cmd.none
+            , adjustAudioParam "ampEnvSustain" (E.float newVal)
             )
 
         AdjustAmpEnvRelease newVal ->
             ( { model | ampEnvRelease = newVal }
-            , Cmd.none
+            , adjustAudioParam "ampEnvRelease" (E.float newVal)
             )
 
         ToggleFilter selectedFilter ->
             ( { model | filter = selectedFilter }
-            , Cmd.none
+            , adjustAudioParam "filter" (E.string <| filterToString selectedFilter)
             )
 
         AdjustFilterFreq newVal ->
             ( { model | filterFreq = newVal }
-            , Cmd.none
+            , adjustAudioParam "filterFreq" (E.float newVal)
             )
 
         AdjustFilterQ newVal ->
             ( { model | filterQ = newVal }
-            , Cmd.none
+            , adjustAudioParam "filterQ" (E.float newVal)
             )
 
         AdjustFilterEnvAttack newVal ->
             ( { model | filterEnvAttack = newVal }
-            , Cmd.none
+            , adjustAudioParam "filterEnvAttack" (E.float newVal)
             )
 
         AdjustFilterEnvDecay newVal ->
             ( { model | filterEnvDecay = newVal }
-            , Cmd.none
+            , adjustAudioParam "filterEnvDecay" (E.float newVal)
             )
 
         AdjustFilterEnvSustain newVal ->
             ( { model | filterEnvSustain = newVal }
-            , Cmd.none
+            , adjustAudioParam "filterEnvSustain" (E.float newVal)
             )
 
         AdjustFilterEnvRelease newVal ->
             ( { model | filterEnvRelease = newVal }
-            , Cmd.none
+            , adjustAudioParam "filterEnvRelease" (E.float newVal)
             )
 
         AdjustGain newVal ->
             ( { model | gain = newVal }
-            , Cmd.none
+            , adjustAudioParam "gain" (E.float newVal)
             )
 
 
@@ -204,6 +201,22 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.none
+
+
+
+-- PORTS
+
+
+port updateAudioParam : E.Value -> Cmd msg
+
+
+adjustAudioParam : String -> E.Value -> Cmd msg
+adjustAudioParam name val =
+    updateAudioParam <|
+        E.object
+            [ ( "name", E.string name )
+            , ( "val", val )
+            ]
 
 
 
