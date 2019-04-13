@@ -56,7 +56,7 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model Sine 0 10 90 10 LPF 100 1 0 10 90 10 50, Cmd.none )
+    ( Model Sine 0.5 0.5 0.1 0.2 LPF 1000 1 0.1 0.2 0.5 0.5 0.3, Cmd.none )
 
 
 type Oscillator
@@ -93,16 +93,16 @@ filterToString : Filter -> String
 filterToString filter =
     case filter of
         LPF ->
-            "LPF"
+            "lowpass"
 
         HPF ->
-            "HPF"
+            "highpass"
 
         BPF ->
-            "BPF"
+            "bandpass"
 
         Notch ->
-            "Notch"
+            "notch"
 
 
 
@@ -130,7 +130,7 @@ update msg model =
     case msg of
         ToggleOscillator selectedOsc ->
             ( { model | osc = selectedOsc }
-            , adjustAudioParam "osc" (E.string <| oscToString selectedOsc)
+            , adjustAudioParam "oscillatorType" (E.string <| oscToString selectedOsc)
             )
 
         AdjustAmpEnvAttack newVal ->
@@ -155,7 +155,7 @@ update msg model =
 
         ToggleFilter selectedFilter ->
             ( { model | filter = selectedFilter }
-            , adjustAudioParam "filter" (E.string <| filterToString selectedFilter)
+            , adjustAudioParam "filterType" (E.string <| filterToString selectedFilter)
             )
 
         AdjustFilterFreq newVal ->
@@ -190,7 +190,7 @@ update msg model =
 
         AdjustGain newVal ->
             ( { model | gain = newVal }
-            , adjustAudioParam "gain" (E.float newVal)
+            , adjustAudioParam "masterGain" (E.float newVal)
             )
 
 
@@ -331,10 +331,10 @@ viewAmplitudeEnvelope model =
     column [ height fill, spacing 5 ]
         [ row panelStyle
             [ sliderGroup
-                [ slider "A" ( 0, 100 ) model.ampEnvAttack AdjustAmpEnvAttack
-                , slider "D" ( 0, 100 ) model.ampEnvDecay AdjustAmpEnvDecay
-                , slider "S" ( 0, 100 ) model.ampEnvSustain AdjustAmpEnvSustain
-                , slider "R" ( 0, 100 ) model.ampEnvRelease AdjustAmpEnvRelease
+                [ slider "A" ( 0.0001, 1 ) model.ampEnvAttack AdjustAmpEnvAttack
+                , slider "D" ( 0.0001, 1 ) model.ampEnvDecay AdjustAmpEnvDecay
+                , slider "S" ( 0.0001, 1 ) model.ampEnvSustain AdjustAmpEnvSustain
+                , slider "R" ( 0.0001, 2 ) model.ampEnvRelease AdjustAmpEnvRelease
                 ]
             ]
         , row [ centerX ] [ text "Amplitude Envelope" ]
@@ -348,8 +348,8 @@ viewFilter model =
             [ filterButtonGroup model
             , spacer
             , sliderGroup
-                [ slider "Freq" ( 0, 100 ) model.filterFreq AdjustFilterFreq
-                , slider "Q" ( 0, 100 ) model.filterQ AdjustFilterQ
+                [ slider "Freq" ( 0, 20000 ) model.filterFreq AdjustFilterFreq
+                , slider "Q" ( 0.0001, 50 ) model.filterQ AdjustFilterQ
                 ]
             ]
         , row [ centerX ] [ text "Filter" ]
@@ -361,10 +361,10 @@ viewFilterEnvelope model =
     column [ height fill, spacing 5 ]
         [ row panelStyle
             [ sliderGroup
-                [ slider "A" ( 0, 100 ) model.filterEnvAttack AdjustFilterEnvAttack
-                , slider "D" ( 0, 100 ) model.filterEnvDecay AdjustFilterEnvDecay
-                , slider "S" ( 0, 100 ) model.filterEnvSustain AdjustFilterEnvSustain
-                , slider "R" ( 0, 100 ) model.filterEnvRelease AdjustFilterEnvRelease
+                [ slider "A" ( 0.0001, 1 ) model.filterEnvAttack AdjustFilterEnvAttack
+                , slider "D" ( 0.0001, 1 ) model.filterEnvDecay AdjustFilterEnvDecay
+                , slider "S" ( 0.0001, 1 ) model.filterEnvSustain AdjustFilterEnvSustain
+                , slider "R" ( 0.0001, 2 ) model.filterEnvRelease AdjustFilterEnvRelease
                 ]
             ]
         , row [ centerX ] [ text "Filter Envelope" ]
@@ -375,7 +375,7 @@ viewGain : Model -> Element Msg
 viewGain model =
     column [ height fill, spacing 5 ]
         [ row panelStyle
-            [ sliderGroup [ slider "" ( 0, 100 ) model.gain AdjustGain ] ]
+            [ sliderGroup [ slider "" ( 0, 1 ) model.gain AdjustGain ] ]
         , row [ centerX ] [ text "Gain" ]
         ]
 
