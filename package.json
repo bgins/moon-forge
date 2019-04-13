@@ -10,7 +10,10 @@
   "license": "",
   "devDependencies": {
     "elm-hot": "^1.0.1",
-    "node-elm-compiler": "^5.0.3"
+    "node-elm-compiler": "^5.0.3",
+    "typescript": "^3.4.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "standardized-audio-context": "^19.1.1"
+  }
 }
