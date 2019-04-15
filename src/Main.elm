@@ -10,6 +10,8 @@ import Element.Input as Input
 import Fonts
 import Html exposing (Html)
 import Html.Attributes exposing (title)
+import Json.Decode as Decode
+import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as E
 
 
@@ -17,7 +19,7 @@ import Json.Encode as E
 -- MAIN
 
 
-main : Program () Model Msg
+main : Program Decode.Value Model Msg
 main =
     Browser.document
         { init = init
@@ -51,12 +53,50 @@ type alias Model =
     , filterEnvSustain : Float
     , filterEnvRelease : Float
     , gain : Float
+    , midiEnabled : Bool
+    , midiDevices : List String
+    , selectedMidiDevice : String
     }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( Model Sine 0.5 0.5 0.1 0.2 LPF 1000 1 0.1 0.2 0.5 0.5 0.3, Cmd.none )
+init : Decode.Value -> ( Model, Cmd Msg )
+init flags =
+    let
+        audioParams =
+            Decode.decodeValue decodeFlags flags
+
+        log =
+            Debug.log "flags: " audioParams
+    in
+    ( Model
+        Sine
+        0.5
+        0.5
+        0.1
+        0.2
+        LPF
+        1000
+        1
+        0.1
+        0.2
+        0.5
+        0.5
+        0.3
+        False
+        []
+        "a"
+    , Cmd.none
+    )
+
+
+type alias Flags =
+    { audioParams : List String }
+
+
+decodeFlags : Decode.Decoder Flags
+decodeFlags =
+    Decode.succeed Flags
+        |> required "audioParams" (Decode.list Decode.string)
 
 
 type Oscillator
@@ -123,6 +163,9 @@ type Msg
     | AdjustFilterEnvSustain Float
     | AdjustFilterEnvRelease Float
     | AdjustGain Float
+    | ToggleMidi Bool
+    | SelectMidiDevice String
+    | ReceiveMidiDevices (List String)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -193,6 +236,33 @@ update msg model =
             , adjustAudioParam "masterGain" (E.float newVal)
             )
 
+        ToggleMidi checked ->
+            if checked then
+                ( { model | midiEnabled = checked }
+                , getMidiDevices ()
+                )
+
+            else
+                ( { model | midiEnabled = checked, midiDevices = [] }
+                , setMidiDevice ""
+                )
+
+        SelectMidiDevice newDevice ->
+            ( { model | selectedMidiDevice = newDevice }
+            , setMidiDevice newDevice
+            )
+
+        ReceiveMidiDevices newMidiDevices ->
+            if List.isEmpty newMidiDevices then
+                ( { model | midiDevices = [ "No Midi devices available" ] }
+                , Cmd.none
+                )
+
+            else
+                ( { model | midiDevices = newMidiDevices }
+                , Cmd.none
+                )
+
 
 
 -- SUBSCRIPTIONS
@@ -200,7 +270,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    updateMidiDevices ReceiveMidiDevices
 
 
 
@@ -217,6 +287,38 @@ adjustAudioParam name val =
             [ ( "name", E.string name )
             , ( "val", val )
             ]
+
+
+port setMidiDevice : String -> Cmd msg
+
+
+port getMidiDevices : () -> Cmd msg
+
+
+port onMidiDevicesRequest : (E.Value -> msg) -> Sub msg
+
+
+updateMidiDevices : (List String -> msg) -> Sub msg
+updateMidiDevices toMsg =
+    onMidiDevicesRequest <|
+        \value ->
+            toMsg <|
+                case Decode.decodeValue decodeMidiDevices value of
+                    Ok midiDevicesPortMessage ->
+                        midiDevicesPortMessage.midiDevices
+
+                    Err err ->
+                        []
+
+
+type alias MidiDevicesPortMessage =
+    { midiDevices : List String }
+
+
+decodeMidiDevices : Decode.Decoder MidiDevicesPortMessage
+decodeMidiDevices =
+    Decode.succeed MidiDevicesPortMessage
+        |> required "midiDevices" (Decode.list Decode.string)
 
 
 
@@ -258,35 +360,67 @@ viewNav =
         ]
 
 
+viewGlobalControls : Model -> Element Msg
+viewGlobalControls model =
+    row [ height fill ]
+        [ column
+            [ height fill
+            , width (px 200)
+            , paddingXY 10 10
+            , Background.color (rgba 0.16 0.16 0.16 1)
+            , Border.widthEach { bottom = 0, left = 0, right = 2, top = 0 }
+            , Border.color (rgba 0.11 0.12 0.14 1)
+            , Font.family Fonts.quattrocentoFont
+            , Font.size 14
+            , spacing 5
+            ]
+            [ el
+                [ paddingXY 0 5
+                , Font.size 18
+                ]
+                (text "Controls")
+            , Input.checkbox [ paddingXY 10 0 ]
+                { checked = model.midiEnabled
+                , onChange = ToggleMidi
+                , icon = controlsCheckbox
+                , label = Input.labelRight [] (text "MIDI")
+                }
+            , controlButtonGroup SelectMidiDevice model.midiDevices model.selectedMidiDevice "Midi device selection"
+            ]
+        ]
+
+
 viewBody : Model -> Element Msg
 viewBody model =
     row
         [ width fill
         , paddingXY 0 30
+        , inFront <| viewGlobalControls model
         ]
-        [ viewInstrument model
+        [ column [ centerX, spacing 15 ]
+            [ viewInstrument model
+            ]
         ]
 
 
 viewInstrument : Model -> Element Msg
 viewInstrument model =
-    column [ centerX ]
-        [ row
-            [ height (px 173)
-            , width fill
-            , paddingXY 10 5
-            , Background.color (rgba 0.95 0.95 0.95 0.9)
-            , Border.widthEach { bottom = 2, left = 2, right = 2, top = 2 }
-            , Border.color (rgba 0.11 0.12 0.14 1)
-            , Border.rounded 7
-            , Font.color (rgba 0.11 0.12 0.14 1)
-            , Font.family Fonts.quattrocentoFont
-            , Font.size 12
-            ]
-            [ column [ width fill, height fill ]
-                [ viewInstrumentName
-                , viewPanels model
-                ]
+    row
+        [ height (px 173)
+        , width fill
+        , centerX
+        , paddingXY 10 5
+        , Background.color (rgba 0.95 0.95 0.95 0.9)
+        , Border.widthEach { bottom = 2, left = 2, right = 2, top = 2 }
+        , Border.color (rgba 0.11 0.12 0.14 1)
+        , Border.rounded 7
+        , Font.color (rgba 0.11 0.12 0.14 1)
+        , Font.family Fonts.quattrocentoFont
+        , Font.size 12
+        ]
+        [ column [ width fill, height fill ]
+            [ viewInstrumentName
+            , viewPanels model
             ]
         ]
 
@@ -384,6 +518,42 @@ viewGain model =
 -- BUTTON GROUPS
 
 
+controlButtonGroup : (String -> Msg) -> List String -> String -> String -> Element Msg
+controlButtonGroup msg options selectedOption label =
+    Input.radio
+        [ width fill, centerX ]
+        { onChange = \choice -> msg choice
+        , options =
+            List.map controlButton options
+        , selected = Just selectedOption
+        , label = Input.labelHidden label
+        }
+
+
+controlButton : String -> Input.Option String Msg
+controlButton label =
+    Input.optionWith label <|
+        \optionState ->
+            wrappedRow
+                [ width fill
+                , height fill
+                , Font.size 12
+                , case optionState of
+                    Input.Selected ->
+                        paddingXY 23 2
+
+                    _ ->
+                        paddingXY 31 2
+                ]
+            <|
+                case optionState of
+                    Input.Selected ->
+                        [ text <| "• " ++ label ]
+
+                    _ ->
+                        [ text label ]
+
+
 oscButtonGroup : Model -> Element Msg
 oscButtonGroup model =
     Input.radio
@@ -424,7 +594,6 @@ verticalButton label =
             , paddingXY 3 7
             , height fill
             , Border.widthEach { bottom = 0, left = 2, right = 0, top = 0 }
-            , Border.color (rgba 0.75 0.75 0.75 1)
             , Border.rounded 1
             , case optionState of
                 Input.Selected ->
@@ -432,7 +601,7 @@ verticalButton label =
                     Border.color (rgba 0.5 0.5 0.7 1)
 
                 _ ->
-                    Font.regular
+                    Border.color (rgba 0.75 0.75 0.75 1)
             ]
         <|
             [ text label ]
@@ -446,14 +615,13 @@ verticalSvgButton label =
             , paddingXY 3 3
             , height fill
             , Border.widthEach { bottom = 0, left = 2, right = 0, top = 0 }
-            , Border.color (rgba 0.75 0.75 0.75 1)
             , Border.rounded 1
             , case optionState of
                 Input.Selected ->
                     Border.color (rgba 0.5 0.5 0.7 1)
 
                 _ ->
-                    Font.regular
+                    Border.color (rgba 0.75 0.75 0.75 1)
             ]
         <|
             [ image [] { src = "./assets/" ++ label ++ ".svg", description = label } ]
@@ -519,6 +687,10 @@ slider label ( min, max ) sliderValue adjustValue =
         }
 
 
+
+-- CUSTOM ELEMENTS
+
+
 sliderThumb : Input.Thumb
 sliderThumb =
     Input.thumb
@@ -531,8 +703,33 @@ sliderThumb =
         ]
 
 
+controlsCheckbox : Bool -> Element msg
+controlsCheckbox checked =
+    el
+        ([ width (px 10)
+         , height (px 10)
+         , centerY
+         , Border.rounded 1
+         ]
+            ++ (if checked then
+                    [ Border.width 2
+                    , Border.color (rgba 0.9 0.9 0.9 1)
 
--- SPACER
+                    -- , Background.color (rgba 0.1 0.1 0.1 1)
+                    , Background.color (rgba 0.788 0.486 0.31 1)
+
+                    -- , Background.color (rgba 0.5 0.5 0.7 1)
+                    ]
+
+                else
+                    [ Border.width 1
+                    , Border.color (rgba 0.7 0.7 0.7 1)
+                    , Background.color (rgba 0.9 0.9 0.9 1)
+                    ]
+               )
+        )
+    <|
+        el [] none
 
 
 spacer : Element Msg

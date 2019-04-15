@@ -1,9 +1,15 @@
 import { Elm } from "./Main.elm";
 import { Luna } from "./luna";
+import { Midi } from "./midi";
 
 let app = Elm.Main.init({
-  node: document.querySelector("main")
+  node: document.querySelector("main"),
+  flags: { audioParams: [] }
 });
+
+const luna = new Luna();
+const midi = new Midi();
+midi.load(luna);
 
 app.ports.updateAudioParam.subscribe(data => {
   console.log(JSON.stringify(data));
@@ -52,5 +58,12 @@ app.ports.updateAudioParam.subscribe(data => {
   }
 });
 
-let luna = new Luna();
-luna.load();
+app.ports.getMidiDevices.subscribe(data => {
+  console.log(midi.getInputNames());
+  app.ports.onMidiDevicesRequest.send({ midiDevices: midi.getInputNames() });
+});
+
+app.ports.setMidiDevice.subscribe(data => {
+  console.log(JSON.stringify(data));
+  midi.setInput(data);
+});
