@@ -332,6 +332,7 @@ view model =
         [ layout
             [ Background.color (rgba 0.16 0.16 0.16 1)
             , Font.color (rgba 1 1 1 1)
+            , inFront <| viewNav
             ]
           <|
             column [ width fill, centerX ]
@@ -340,6 +341,14 @@ view model =
                 ]
         ]
     }
+
+
+viewFrame : Model -> Element Msg
+viewFrame model =
+    column [ width fill, height fill ]
+        [ viewNav
+        , viewGlobalControls model
+        ]
 
 
 viewNav : Element Msg
@@ -576,10 +585,10 @@ filterButtonGroup model =
         [ width fill, centerX ]
         { onChange = \choice -> ToggleFilter choice
         , options =
-            [ Input.optionWith LPF <| verticalButton <| filterToString LPF
-            , Input.optionWith HPF <| verticalButton <| filterToString HPF
-            , Input.optionWith BPF <| verticalButton <| filterToString BPF
-            , Input.optionWith Notch <| verticalButton <| filterToString Notch
+            [ Input.optionWith LPF <| verticalSvgButton <| filterToString LPF
+            , Input.optionWith HPF <| verticalSvgButton <| filterToString HPF
+            , Input.optionWith BPF <| verticalSvgButton <| filterToString BPF
+            , Input.optionWith Notch <| verticalSvgButton <| filterToString Notch
             ]
         , selected = Just model.filter
         , label = Input.labelHidden "Filter selection"
