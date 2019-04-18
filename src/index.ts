@@ -12,7 +12,6 @@ const luna = new Luna();
 const keyboard = new Keyboard();
 const midi = new Midi();
 keyboard.enable(luna);
-midi.enable(luna);
 
 app.ports.updateAudioParam.subscribe(data => {
   console.log(JSON.stringify(data));
@@ -63,6 +62,7 @@ app.ports.updateAudioParam.subscribe(data => {
 
 app.ports.enableKeyboard.subscribe(() => {
   keyboard.enable(luna);
+  midi.disable();
 });
 
 app.ports.disableKeyboard.subscribe(() => {
@@ -71,6 +71,8 @@ app.ports.disableKeyboard.subscribe(() => {
 
 app.ports.getMidiDevices.subscribe(() => {
   console.log(midi.getInputNames());
+  midi.enable(luna);
+  keyboard.disable();
   app.ports.onMidiDevicesRequest.send({ midiDevices: midi.getInputNames() });
 });
 

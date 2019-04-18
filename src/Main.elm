@@ -238,23 +238,23 @@ update msg model =
 
         ToggleKeyboard checked ->
             if checked then
-                ( { model | keyboardEnabled = checked }
+                ( { model | keyboardEnabled = True, midiEnabled = False }
                 , enableKeyboard ()
                 )
 
             else
-                ( { model | keyboardEnabled = checked }
+                ( { model | keyboardEnabled = False }
                 , disableKeyboard ()
                 )
 
         ToggleMidi checked ->
             if checked then
-                ( { model | midiEnabled = checked }
+                ( { model | midiEnabled = True, keyboardEnabled = False }
                 , getMidiDevices ()
                 )
 
             else
-                ( { model | midiEnabled = checked, midiDevices = [] }
+                ( { model | midiEnabled = False, midiDevices = [] }
                 , setMidiDevice ""
                 )
 

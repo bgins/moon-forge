@@ -7,6 +7,25 @@ class Midi {
   inputs: Input[] = [];
   instrument: IInstrument;
 
+  constructor() {
+    webmidi.enable(err => {
+      if (!err) {
+        console.log("WebMidi enabled!");
+
+        this.inputs = webmidi.inputs;
+
+        if (this.inputs.length > 0) {
+          this.input = webmidi.inputs[0];
+          this.addListeners(this.input);
+        } else {
+          console.log("No Midi devices available.");
+        }
+      } else {
+        console.log("WebMidi could not be enabled.", err);
+      }
+    });
+  }
+
   getInputNames(): string[] {
     return this.inputs.map(input => input.name);
   }
@@ -53,26 +72,10 @@ class Midi {
 
   enable(instrument: IInstrument) {
     this.instrument = instrument;
+  }
 
-    webmidi.enable(err => {
-      if (!err) {
-        console.log("WebMidi enabled!");
-
-        // console.log(webmidi.inputs);
-        // console.log(webmidi.outputs);
-
-        this.inputs = webmidi.inputs;
-
-        if (this.inputs.length > 0) {
-          this.input = webmidi.inputs[0];
-          this.addListeners(this.input);
-        } else {
-          console.log("No Midi devices available.");
-        }
-      } else {
-        console.log("WebMidi could not be enabled.", err);
-      }
-    });
+  disable() {
+    this.instrument = null;
   }
 }
 
