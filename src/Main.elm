@@ -497,10 +497,10 @@ viewAmplitudeEnvelope model =
     column [ height fill, spacing 5 ]
         [ row panelStyle
             [ sliderGroup
-                [ slider "A" ( 0.0001, 1 ) model.ampEnvAttack AdjustAmpEnvAttack
-                , slider "D" ( 0.0001, 1 ) model.ampEnvDecay AdjustAmpEnvDecay
-                , slider "S" ( 0.0001, 1 ) model.ampEnvSustain AdjustAmpEnvSustain
-                , slider "R" ( 0.0001, 2 ) model.ampEnvRelease AdjustAmpEnvRelease
+                [ slider "A" 1 model.ampEnvAttack displayTime AdjustAmpEnvAttack
+                , slider "D" 1 model.ampEnvDecay displayTime AdjustAmpEnvDecay
+                , slider "S" 1 model.ampEnvSustain displayMagnitude AdjustAmpEnvSustain
+                , slider "R" 1 model.ampEnvRelease displayTime AdjustAmpEnvRelease
                 ]
             ]
         , row [ centerX ] [ text "Amplitude Envelope" ]
@@ -514,8 +514,8 @@ viewFilter model =
             [ filterButtonGroup model
             , spacer
             , sliderGroup
-                [ slider "Freq" ( 0, 20000 ) model.filterFreq AdjustFilterFreq
-                , slider "Q" ( 0.0001, 50 ) model.filterQ AdjustFilterQ
+                [ slider "Freq" 20000 model.filterFreq displayFrequency AdjustFilterFreq
+                , slider "Q" 20 model.filterQ displayMagnitude AdjustFilterQ
                 ]
             ]
         , row [ centerX ] [ text "Filter" ]
@@ -527,10 +527,10 @@ viewFilterEnvelope model =
     column [ height fill, spacing 5 ]
         [ row panelStyle
             [ sliderGroup
-                [ slider "A" ( 0.0001, 1 ) model.filterEnvAttack AdjustFilterEnvAttack
-                , slider "D" ( 0.0001, 1 ) model.filterEnvDecay AdjustFilterEnvDecay
-                , slider "S" ( 0.0001, 1 ) model.filterEnvSustain AdjustFilterEnvSustain
-                , slider "R" ( 0.0001, 2 ) model.filterEnvRelease AdjustFilterEnvRelease
+                [ slider "A" 1 model.filterEnvAttack displayTime AdjustFilterEnvAttack
+                , slider "D" 1 model.filterEnvDecay displayTime AdjustFilterEnvDecay
+                , slider "S" 1 model.filterEnvSustain displayMagnitude AdjustFilterEnvSustain
+                , slider "R" 1 model.filterEnvRelease displayTime AdjustFilterEnvRelease
                 ]
             ]
         , row [ centerX ] [ text "Filter Envelope" ]
@@ -541,7 +541,7 @@ viewGain : Model -> Element Msg
 viewGain model =
     column [ height fill, spacing 5 ]
         [ row panelStyle
-            [ sliderGroup [ slider "" ( 0, 1 ) model.gain AdjustGain ] ]
+            [ sliderGroup [ slider "" 1 model.gain displayMagnitude AdjustGain ] ]
         , row [ centerX ] [ text "Gain" ]
         ]
 
@@ -586,18 +586,18 @@ controlButton label =
                         [ text label ]
 
 
-oscButtonGroup : Model -> Element Msg
-oscButtonGroup model =
+oscillatorButtonGroup : Model -> Element Msg
+oscillatorButtonGroup model =
     Input.radio
         [ width fill, centerX ]
         { onChange = \choice -> ToggleOscillator choice
         , options =
-            [ Input.optionWith Sine <| verticalSvgButton <| oscToString Sine
-            , Input.optionWith Square <| verticalSvgButton <| oscToString Square
-            , Input.optionWith Triangle <| verticalSvgButton <| oscToString Triangle
-            , Input.optionWith Sawtooth <| verticalSvgButton <| oscToString Sawtooth
+            [ Input.optionWith Sine <| verticalSvgButton <| oscillatorToString Sine
+            , Input.optionWith Square <| verticalSvgButton <| oscillatorToString Square
+            , Input.optionWith Triangle <| verticalSvgButton <| oscillatorToString Triangle
+            , Input.optionWith Sawtooth <| verticalSvgButton <| oscillatorToString Sawtooth
             ]
-        , selected = Just model.osc
+        , selected = Just model.oscillator
         , label = Input.labelHidden "Oscillator selection"
         }
 
@@ -671,12 +671,16 @@ type alias SliderLabel =
     String
 
 
-type alias SliderRange =
-    ( Float, Float )
-
-
-type alias SliderValue =
+type alias ScalingFactor =
     Float
+
+
+type alias ParamValue =
+    Float
+
+
+type alias DisplayFunction =
+    Float -> String
 
 
 sliderGroup : List (Element Msg) -> Element Msg
@@ -686,37 +690,48 @@ sliderGroup sliders =
         ]
 
 
-slider : SliderLabel -> SliderRange -> SliderValue -> (Float -> Msg) -> Element Msg
-slider label ( min, max ) sliderValue adjustValue =
-    Input.slider
+slider :
+    SliderLabel
+    -> ScalingFactor
+    -> ParamValue
+    -> DisplayFunction
+    -> (Float -> Msg)
+    -> Element Msg
+slider label scalingFactor paramValue displayFunction adjustValue =
+    column
         [ height fill
-        , width (px 30)
-        , behindContent
-            (el
-                [ width (px 1)
-                , height fill
-                , centerX
-                , Background.color (rgba 0.5 0.5 0.5 1)
-                , Border.rounded 2
-                ]
-                none
-            )
+        , spacing 2
         ]
-        { onChange = \newVal -> adjustValue newVal
-        , label =
-            Input.labelBelow
-                [ centerX
-
-                -- , Element.htmlAttribute (Html.Attributes.title "some tooltip")
-                ]
-                (text label)
-        , min = min
-        , max = max
-        , step = Nothing
-        , value = sliderValue
-        , thumb =
-            sliderThumb
-        }
+        [ Input.slider
+            [ height fill
+            , width (px 30)
+            , behindContent <|
+                el
+                    [ width (px 1)
+                    , height fill
+                    , centerX
+                    , Background.color (rgba 0.5 0.5 0.5 1)
+                    , Border.rounded 2
+                    ]
+                    none
+            ]
+            { onChange = \newSliderVal -> adjustValue <| (newSliderVal ^ 2) * scalingFactor
+            , label = Input.labelBelow [ centerX ] <| text label
+            , min = 0.0001
+            , max = 1
+            , step = Just 0.001
+            , value = sqrt (paramValue / scalingFactor)
+            , thumb = sliderThumb
+            }
+        , el
+            [ centerX
+            , Font.size 8
+            , Font.color (rgba 0.3 0.3 0.3 1)
+            ]
+          <|
+            text <|
+                displayFunction paramValue
+        ]
 
 
 
@@ -788,3 +803,34 @@ panelStyle =
     , Border.color (rgba 0.8 0.8 0.8 1)
     , Border.rounded 2
     ]
+
+
+
+-- LABELS
+
+
+displayMagnitude : Float -> String
+displayMagnitude val =
+    String.fromFloat
+        (toFloat (round (val * 100)) / 100)
+
+
+displayTime : Float -> String
+displayTime time =
+    String.fromFloat
+        -- (toFloat (round (time * 100)) / 100)
+        (toFloat (round (time * 1000)) / 1000)
+        ++ "s"
+
+
+displayFrequency : Float -> String
+displayFrequency freq =
+    if freq >= 1000 then
+        String.fromFloat
+            (toFloat (round (freq / 100)) / 10)
+            ++ "kHz"
+
+    else
+        String.fromInt
+            (round (freq * 100) // 100)
+            ++ "Hz"
