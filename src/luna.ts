@@ -78,7 +78,8 @@ class Luna implements IInstrument {
   }
 
   playNote(midiNote: number): void {
-    let freq = (440 / 32) * 2 ** ((midiNote - 9) / 12);
+    // let freq = 440 * 2 ** ((midiNote - 69) / 10);
+    let freq = 261.625565 * 2 ** ((midiNote - 60) / 12);
     console.log(freq);
 
     let oscillator = this.audioContext.createOscillator();

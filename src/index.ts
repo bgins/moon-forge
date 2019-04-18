@@ -1,3 +1,4 @@
+import { Keyboard } from "./keyboard";
 import { Elm } from "./Main.elm";
 import { Luna } from "./luna";
 import { Midi } from "./midi";
@@ -8,8 +9,10 @@ let app = Elm.Main.init({
 });
 
 const luna = new Luna();
+const keyboard = new Keyboard();
 const midi = new Midi();
-midi.load(luna);
+keyboard.enable(luna);
+midi.enable(luna);
 
 app.ports.updateAudioParam.subscribe(data => {
   console.log(JSON.stringify(data));
@@ -58,7 +61,15 @@ app.ports.updateAudioParam.subscribe(data => {
   }
 });
 
-app.ports.getMidiDevices.subscribe(data => {
+app.ports.enableKeyboard.subscribe(() => {
+  keyboard.enable(luna);
+});
+
+app.ports.disableKeyboard.subscribe(() => {
+  keyboard.disable();
+});
+
+app.ports.getMidiDevices.subscribe(() => {
   console.log(midi.getInputNames());
   app.ports.onMidiDevicesRequest.send({ midiDevices: midi.getInputNames() });
 });

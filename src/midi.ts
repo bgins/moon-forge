@@ -51,26 +51,26 @@ class Midi {
     input.removeListener("controlchange");
   }
 
-  load(instrument: IInstrument) {
+  enable(instrument: IInstrument) {
     this.instrument = instrument;
 
     webmidi.enable(err => {
       if (!err) {
         console.log("WebMidi enabled!");
+
+        // console.log(webmidi.inputs);
+        // console.log(webmidi.outputs);
+
+        this.inputs = webmidi.inputs;
+
+        if (this.inputs.length > 0) {
+          this.input = webmidi.inputs[0];
+          this.addListeners(this.input);
+        } else {
+          console.log("No Midi devices available.");
+        }
       } else {
         console.log("WebMidi could not be enabled.", err);
-      }
-
-      console.log(webmidi.inputs);
-      console.log(webmidi.outputs);
-
-      this.inputs = webmidi.inputs;
-
-      if (this.inputs.length !== 0) {
-        this.input = webmidi.inputs[0];
-        this.addListeners(this.input);
-      } else {
-        console.log("No Midi devices available.");
       }
     });
   }

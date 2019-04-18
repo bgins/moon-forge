@@ -40,7 +40,7 @@ type alias Document msg =
 
 
 type alias Model =
-    { osc : Oscillator
+    { oscillator : Oscillator
     , ampEnvAttack : Float
     , ampEnvDecay : Float
     , ampEnvSustain : Float
@@ -53,6 +53,7 @@ type alias Model =
     , filterEnvSustain : Float
     , filterEnvRelease : Float
     , gain : Float
+    , keyboardEnabled : Bool
     , midiEnabled : Bool
     , midiDevices : List String
     , selectedMidiDevice : String
@@ -64,9 +65,6 @@ init flags =
     let
         audioParams =
             Decode.decodeValue decodeFlags flags
-
-        log =
-            Debug.log "flags: " audioParams
     in
     ( Model
         Sine
@@ -82,6 +80,7 @@ init flags =
         0.5
         0.5
         0.3
+        True
         False
         []
         "a"
@@ -106,9 +105,9 @@ type Oscillator
     | Sawtooth
 
 
-oscToString : Oscillator -> String
-oscToString osc =
-    case osc of
+oscillatorToString : Oscillator -> String
+oscillatorToString oscillator =
+    case oscillator of
         Sine ->
             "sine"
 
@@ -163,6 +162,7 @@ type Msg
     | AdjustFilterEnvSustain Float
     | AdjustFilterEnvRelease Float
     | AdjustGain Float
+    | ToggleKeyboard Bool
     | ToggleMidi Bool
     | SelectMidiDevice String
     | ReceiveMidiDevices (List String)
@@ -171,9 +171,9 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ToggleOscillator selectedOsc ->
-            ( { model | osc = selectedOsc }
-            , adjustAudioParam "oscillatorType" (E.string <| oscToString selectedOsc)
+        ToggleOscillator selectedOscillator ->
+            ( { model | oscillator = selectedOscillator }
+            , adjustAudioParam "oscillatorType" (E.string <| oscillatorToString selectedOscillator)
             )
 
         AdjustAmpEnvAttack newVal ->
@@ -236,6 +236,17 @@ update msg model =
             , adjustAudioParam "masterGain" (E.float newVal)
             )
 
+        ToggleKeyboard checked ->
+            if checked then
+                ( { model | keyboardEnabled = checked }
+                , enableKeyboard ()
+                )
+
+            else
+                ( { model | keyboardEnabled = checked }
+                , disableKeyboard ()
+                )
+
         ToggleMidi checked ->
             if checked then
                 ( { model | midiEnabled = checked }
@@ -289,10 +300,16 @@ adjustAudioParam name val =
             ]
 
 
-port setMidiDevice : String -> Cmd msg
+port enableKeyboard : () -> Cmd msg
+
+
+port disableKeyboard : () -> Cmd msg
 
 
 port getMidiDevices : () -> Cmd msg
+
+
+port setMidiDevice : String -> Cmd msg
 
 
 port onMidiDevicesRequest : (E.Value -> msg) -> Sub msg
@@ -387,7 +404,13 @@ viewGlobalControls model =
                 [ paddingXY 0 5
                 , Font.size 18
                 ]
-                (text "Controls")
+                (text "Controllers")
+            , Input.checkbox [ paddingXY 10 0 ]
+                { checked = model.keyboardEnabled
+                , onChange = ToggleKeyboard
+                , icon = controlsCheckbox
+                , label = Input.labelRight [] (text "Keyboard")
+                }
             , Input.checkbox [ paddingXY 10 0 ]
                 { checked = model.midiEnabled
                 , onChange = ToggleMidi
@@ -464,7 +487,7 @@ viewPanels model =
 viewOscillator : Model -> Element Msg
 viewOscillator model =
     column [ height fill, spacing 5 ]
-        [ row panelStyle [ oscButtonGroup model ]
+        [ row panelStyle [ oscillatorButtonGroup model ]
         , row [ centerX ] [ text "Osc" ]
         ]
 
