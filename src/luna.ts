@@ -58,6 +58,9 @@ class Luna implements IInstrument {
     channelCountMode: "max",
     channelInterpretation: "speakers"
   };
+  edo: number = 12;
+  baseFrequency: number = 261.625;
+  baseMidiNote: number = 60;
 
   constructor() {
     this.audioContext = new AudioContext();
@@ -69,6 +72,7 @@ class Luna implements IInstrument {
     );
     this.masterGainNode.connect(this.audioContext.destination);
   }
+
   updateMasterGain(gain: number): void {
     this.masterGainOptions.gain = gain;
     this.masterGainNode.gain.setValueAtTime(
@@ -78,8 +82,9 @@ class Luna implements IInstrument {
   }
 
   playNote(midiNote: number): void {
-    // let freq = 440 * 2 ** ((midiNote - 69) / 10);
-    let freq = 261.625565 * 2 ** ((midiNote - 60) / 12);
+    // let freq = 261.625565 * 2 ** ((midiNote - 60) / 12);
+    let freq =
+      this.baseFrequency * 2 ** ((midiNote - this.baseMidiNote) / this.edo);
     console.log(freq);
 
     let oscillator = this.audioContext.createOscillator();

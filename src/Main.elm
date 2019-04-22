@@ -57,6 +57,10 @@ type alias Model =
     , midiEnabled : Bool
     , midiDevices : List String
     , selectedMidiDevice : String
+    , tuningPanelVisible : Bool
+    , temperamentInput : String
+    , baseFrequencyInput : String
+    , baseMidiNoteInput : String
     }
 
 
@@ -83,7 +87,11 @@ init flags =
         True
         False
         []
-        "a"
+        ""
+        False
+        "12"
+        "261.625"
+        "60"
     , Cmd.none
     )
 
@@ -166,6 +174,10 @@ type Msg
     | ToggleMidi Bool
     | SelectMidiDevice String
     | ReceiveMidiDevices (List String)
+    | ToggleTuningPanel Bool
+    | UpdateTemperament String
+    | UpdateBaseFrequency String
+    | UpdateBaseMidiNote String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -273,6 +285,41 @@ update msg model =
                 ( { model | midiDevices = newMidiDevices }
                 , Cmd.none
                 )
+
+        ToggleTuningPanel checked ->
+            ( { model | tuningPanelVisible = checked }
+            , Cmd.none
+            )
+
+        UpdateTemperament newVal ->
+            ( { model | temperamentInput = newVal }
+            , case String.toInt newVal of
+                Just val ->
+                    adjustAudioParam "edo" (E.int val)
+
+                Nothing ->
+                    Cmd.none
+            )
+
+        UpdateBaseFrequency newVal ->
+            ( { model | baseFrequencyInput = newVal }
+            , case String.toFloat newVal of
+                Just val ->
+                    adjustAudioParam "baseFrequency" (E.float val)
+
+                Nothing ->
+                    Cmd.none
+            )
+
+        UpdateBaseMidiNote newVal ->
+            ( { model | baseMidiNoteInput = newVal }
+            , case String.toInt newVal of
+                Just val ->
+                    adjustAudioParam "baseMidiNote" (E.int val)
+
+                Nothing ->
+                    Cmd.none
+            )
 
 
 
@@ -386,20 +433,45 @@ viewNav =
         ]
 
 
+viewBody : Model -> Element Msg
+viewBody model =
+    row
+        [ width fill
+        , height fill
+        , paddingXY 0 30
+        , inFront <| viewGlobalControls model
+        ]
+        [ column [ centerX, alignTop ]
+            [ viewInstrument model
+            ]
+        ]
+
+
+
+-- VIEW GLOBAL CONTROLS
+
+
 viewGlobalControls : Model -> Element Msg
 viewGlobalControls model =
-    row [ height fill ]
-        [ column
-            [ height fill
-            , width (px 200)
-            , paddingXY 10 10
-            , Background.color (rgba 0.16 0.16 0.16 1)
-            , Border.widthEach { bottom = 0, left = 0, right = 2, top = 0 }
-            , Border.color (rgba 0.11 0.12 0.14 1)
-            , Font.family Fonts.quattrocentoFont
-            , Font.size 14
-            , spacing 5
-            ]
+    column
+        [ height fill
+        , width (px 200)
+        , paddingXY 10 10
+        , Background.color (rgba 0.16 0.16 0.16 1)
+        , Border.color (rgba 0.11 0.12 0.14 1)
+        , Border.widthEach { bottom = 0, left = 0, right = 2, top = 0 }
+        , Font.family Fonts.quattrocentoFont
+        , spacing 5
+        ]
+        [ viewControllersControls model
+        , viewInstrumentControls model
+        ]
+
+
+viewControllersControls : Model -> Element Msg
+viewControllersControls model =
+    row []
+        [ column [ spacing 5 ]
             [ el
                 [ paddingXY 0 5
                 , Font.size 18
@@ -547,35 +619,77 @@ viewGain model =
 
 
 
--- BUTTON GROUPS
+-- TEXT INPUTS
 
 
-controlButtonGroup : (String -> Msg) -> List String -> String -> String -> Element Msg
-controlButtonGroup msg options selectedOption label =
+type alias Label =
+    String
+
+
+controlsTextInput : (String -> Msg) -> Label -> String -> Element Msg
+controlsTextInput toMsg label currentText =
+    Input.text
+        [ width fill
+        , paddingXY 2 0
+        , Font.size 10
+        , Font.center
+        , Background.color (rgba 0.16 0.16 0.16 1)
+        , Border.color (rgba 0.3 0.3 0.3 1)
+        , Border.width 1
+        , Border.rounded 1
+        , focused
+            [ Border.shadow
+                { offset = ( 0, 0 )
+                , blur = 0
+                , color = rgba 235 235 235 0
+                , size = 0
+                }
+            , Border.color (rgba 0.5 0.5 0.5 1)
+            ]
+        ]
+        { onChange = \newText -> toMsg newText
+        , label = Input.labelAbove [] (text label)
+        , placeholder = Just (Input.placeholder [] (text ""))
+        , text = currentText
+        }
+
+
+
+-- BUTTON AND RADIO GROUPS
+
+
+controlsRadioGroup :
+    (String -> Msg)
+    -> (String -> Input.Option String Msg)
+    -> List String
+    -> String
+    -> String
+    -> Element Msg
+controlsRadioGroup msg toRadioOption options selectedOption label =
     Input.radio
         [ width fill, centerX ]
         { onChange = \choice -> msg choice
         , options =
-            List.map controlButton options
+            List.map toRadioOption options
         , selected = Just selectedOption
         , label = Input.labelHidden label
         }
 
 
-controlButton : String -> Input.Option String Msg
-controlButton label =
+controlSmallRadioOption : String -> Input.Option String Msg
+controlSmallRadioOption label =
     Input.optionWith label <|
         \optionState ->
-            wrappedRow
+            row
                 [ width fill
                 , height fill
                 , Font.size 12
                 , case optionState of
                     Input.Selected ->
-                        paddingXY 23 2
+                        paddingXY 20 2
 
                     _ ->
-                        paddingXY 31 2
+                        paddingXY 28 2
                 ]
             <|
                 case optionState of
@@ -608,9 +722,9 @@ filterButtonGroup model =
         [ width fill, centerX ]
         { onChange = \choice -> ToggleFilter choice
         , options =
-            [ Input.optionWith LPF <| verticalSvgButton <| filterToString LPF
-            , Input.optionWith HPF <| verticalSvgButton <| filterToString HPF
-            , Input.optionWith BPF <| verticalSvgButton <| filterToString BPF
+            [ Input.optionWith Lowpass <| verticalSvgButton <| filterToString Lowpass
+            , Input.optionWith Higpass <| verticalSvgButton <| filterToString Higpass
+            , Input.optionWith Bandpass <| verticalSvgButton <| filterToString Bandpass
             , Input.optionWith Notch <| verticalSvgButton <| filterToString Notch
             ]
         , selected = Just model.filter

@@ -55,6 +55,15 @@ app.ports.updateAudioParam.subscribe(data => {
     case "masterGain":
       luna.updateMasterGain(data.val);
       break;
+    case "edo":
+      luna.edo = data.val;
+      break;
+    case "baseFrequency":
+      luna.baseFrequency = data.val;
+      break;
+    case "baseMidiNote":
+      luna.baseMidiNote = data.val;
+      break;
     default:
       console.log("unknown parameter adjustment");
   }
