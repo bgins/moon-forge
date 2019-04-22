@@ -3,10 +3,10 @@ module UI.Instrument exposing (displayFrequency, displayMagnitude, displayTime, 
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Events exposing (..)
 import Element.Font as Font
 import Element.Input as Input
-import Fonts
+import UI.Colors as Colors
+import UI.Fonts as Fonts
 
 
 
@@ -38,7 +38,6 @@ buttonOption :
     -> a
     -> Input.Option a msg
 buttonOption toButton toString option =
-    -- Input.optionWith option <| verticalSvgButton <| toString option
     Input.optionWith option <| toButton <| toString option
 
 
@@ -53,10 +52,10 @@ verticalSvgButton label =
             , Border.rounded 1
             , case optionState of
                 Input.Selected ->
-                    Border.color (rgba 0.5 0.5 0.7 1)
+                    Border.color Colors.purple
 
                 _ ->
-                    Border.color (rgba 0.75 0.75 0.75 1)
+                    Border.color (rgb 0.75 0.75 0.75)
             ]
         <|
             [ image [] { src = "./assets/" ++ label ++ ".svg", description = label } ]
@@ -105,7 +104,7 @@ slider label scalingFactor paramValue displayFunction adjustValue =
                     [ width (px 1)
                     , height fill
                     , centerX
-                    , Background.color (rgba 0.5 0.5 0.5 1)
+                    , Background.color (rgb 0.5 0.5 0.5)
                     , Border.rounded 2
                     ]
                     none
@@ -121,7 +120,7 @@ slider label scalingFactor paramValue displayFunction adjustValue =
         , el
             [ centerX
             , Font.size 8
-            , Font.color (rgba 0.3 0.3 0.3 1)
+            , Font.color (rgb 0.3 0.3 0.3)
             ]
           <|
             text <|
@@ -135,8 +134,8 @@ sliderThumb =
         [ Element.width (Element.px 16)
         , Element.height (Element.px 6)
         , Border.width 1
-        , Border.color (rgba 0.9 0.9 0.9 1)
-        , Background.color (rgba 0.11 0.12 0.14 1)
+        , Border.color Colors.lightGrey
+        , Background.color Colors.nearBlack
         , Border.rounded 2
         ]
 
@@ -151,7 +150,7 @@ spacer =
         [ row
             [ height fill
             , Border.widthEach { bottom = 0, left = 1, right = 0, top = 0 }
-            , Border.color (rgba 0.8 0.8 0.8 1)
+            , Border.color (rgb 0.8 0.8 0.8)
             ]
             [ el [] none ]
         ]
@@ -174,7 +173,6 @@ displayMagnitude val =
 displayTime : Float -> String
 displayTime time =
     String.fromFloat
-        -- (toFloat (round (time * 100)) / 100)
         (toFloat (round (time * 1000)) / 1000)
         ++ "s"
 
@@ -201,6 +199,6 @@ panelStyle =
     [ width fill
     , height fill
     , Border.width 1
-    , Border.color (rgba 0.8 0.8 0.8 1)
+    , Border.color (rgb 0.8 0.8 0.8)
     , Border.rounded 2
     ]

@@ -4,13 +4,13 @@ import Browser
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Events exposing (..)
 import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (optional, required)
-import Json.Encode as E
+import Json.Encode as Encode
+import UI.Colors as Colors
 import UI.Controls as Controls
 import UI.Fonts as Fonts
 import UI.Instrument as Instrument
@@ -65,6 +65,20 @@ type alias Model =
     }
 
 
+type Oscillator
+    = Sine
+    | Square
+    | Triangle
+    | Sawtooth
+
+
+type Filter
+    = Lowpass
+    | Highpass
+    | Bandpass
+    | Notch
+
+
 init : Decode.Value -> ( Model, Cmd Msg )
 init flags =
     let
@@ -107,52 +121,6 @@ decodeFlags =
         |> required "audioParams" (Decode.list Decode.string)
 
 
-type Oscillator
-    = Sine
-    | Square
-    | Triangle
-    | Sawtooth
-
-
-oscillatorToString : Oscillator -> String
-oscillatorToString oscillator =
-    case oscillator of
-        Sine ->
-            "sine"
-
-        Square ->
-            "square"
-
-        Triangle ->
-            "triangle"
-
-        Sawtooth ->
-            "sawtooth"
-
-
-type Filter
-    = Lowpass
-    | Highpass
-    | Bandpass
-    | Notch
-
-
-filterToString : Filter -> String
-filterToString filter =
-    case filter of
-        Lowpass ->
-            "lowpass"
-
-        Highpass ->
-            "highpass"
-
-        Bandpass ->
-            "bandpass"
-
-        Notch ->
-            "notch"
-
-
 
 -- UPDATE
 
@@ -186,67 +154,67 @@ update msg model =
     case msg of
         ToggleOscillator selectedOscillator ->
             ( { model | oscillator = selectedOscillator }
-            , adjustAudioParam "oscillatorType" (E.string <| oscillatorToString selectedOscillator)
+            , adjustAudioParam "oscillatorType" (Encode.string <| oscillatorToString selectedOscillator)
             )
 
         AdjustAmpEnvAttack newVal ->
             ( { model | ampEnvAttack = newVal }
-            , adjustAudioParam "ampEnvAttack" (E.float newVal)
+            , adjustAudioParam "ampEnvAttack" (Encode.float newVal)
             )
 
         AdjustAmpEnvDecay newVal ->
             ( { model | ampEnvDecay = newVal }
-            , adjustAudioParam "ampEnvDecay" (E.float newVal)
+            , adjustAudioParam "ampEnvDecay" (Encode.float newVal)
             )
 
         AdjustAmpEnvSustain newVal ->
             ( { model | ampEnvSustain = newVal }
-            , adjustAudioParam "ampEnvSustain" (E.float newVal)
+            , adjustAudioParam "ampEnvSustain" (Encode.float newVal)
             )
 
         AdjustAmpEnvRelease newVal ->
             ( { model | ampEnvRelease = newVal }
-            , adjustAudioParam "ampEnvRelease" (E.float newVal)
+            , adjustAudioParam "ampEnvRelease" (Encode.float newVal)
             )
 
         ToggleFilter selectedFilter ->
             ( { model | filter = selectedFilter }
-            , adjustAudioParam "filterType" (E.string <| filterToString selectedFilter)
+            , adjustAudioParam "filterType" (Encode.string <| filterToString selectedFilter)
             )
 
         AdjustFilterFreq newVal ->
             ( { model | filterFreq = newVal }
-            , adjustAudioParam "filterFreq" (E.float newVal)
+            , adjustAudioParam "filterFreq" (Encode.float newVal)
             )
 
         AdjustFilterQ newVal ->
             ( { model | filterQ = newVal }
-            , adjustAudioParam "filterQ" (E.float newVal)
+            , adjustAudioParam "filterQ" (Encode.float newVal)
             )
 
         AdjustFilterEnvAttack newVal ->
             ( { model | filterEnvAttack = newVal }
-            , adjustAudioParam "filterEnvAttack" (E.float newVal)
+            , adjustAudioParam "filterEnvAttack" (Encode.float newVal)
             )
 
         AdjustFilterEnvDecay newVal ->
             ( { model | filterEnvDecay = newVal }
-            , adjustAudioParam "filterEnvDecay" (E.float newVal)
+            , adjustAudioParam "filterEnvDecay" (Encode.float newVal)
             )
 
         AdjustFilterEnvSustain newVal ->
             ( { model | filterEnvSustain = newVal }
-            , adjustAudioParam "filterEnvSustain" (E.float newVal)
+            , adjustAudioParam "filterEnvSustain" (Encode.float newVal)
             )
 
         AdjustFilterEnvRelease newVal ->
             ( { model | filterEnvRelease = newVal }
-            , adjustAudioParam "filterEnvRelease" (E.float newVal)
+            , adjustAudioParam "filterEnvRelease" (Encode.float newVal)
             )
 
         AdjustGain newVal ->
             ( { model | gain = newVal }
-            , adjustAudioParam "masterGain" (E.float newVal)
+            , adjustAudioParam "masterGain" (Encode.float newVal)
             )
 
         ToggleKeyboard checked ->
@@ -296,7 +264,7 @@ update msg model =
             ( { model | temperamentInput = newVal }
             , case String.toInt newVal of
                 Just val ->
-                    adjustAudioParam "edo" (E.int val)
+                    adjustAudioParam "edo" (Encode.int val)
 
                 Nothing ->
                     Cmd.none
@@ -306,7 +274,7 @@ update msg model =
             ( { model | baseFrequencyInput = newVal }
             , case String.toFloat newVal of
                 Just val ->
-                    adjustAudioParam "baseFrequency" (E.float val)
+                    adjustAudioParam "baseFrequency" (Encode.float val)
 
                 Nothing ->
                     Cmd.none
@@ -316,7 +284,7 @@ update msg model =
             ( { model | baseMidiNoteInput = newVal }
             , case String.toInt newVal of
                 Just val ->
-                    adjustAudioParam "baseMidiNote" (E.int val)
+                    adjustAudioParam "baseMidiNote" (Encode.int val)
 
                 Nothing ->
                     Cmd.none
@@ -336,31 +304,56 @@ subscriptions _ =
 -- PORTS
 
 
-port updateAudioParam : E.Value -> Cmd msg
+{-| Update instrument parameters in web audio
+
+At the moment, the parameters are tightly coupled and need to be changed on both
+sides.
+
+-}
+port updateAudioParam : Encode.Value -> Cmd msg
 
 
-adjustAudioParam : String -> E.Value -> Cmd msg
+adjustAudioParam : String -> Encode.Value -> Cmd msg
 adjustAudioParam name val =
     updateAudioParam <|
-        E.object
-            [ ( "name", E.string name )
+        Encode.object
+            [ ( "name", Encode.string name )
             , ( "val", val )
             ]
 
 
+{-| Enable or disable computer keyboard
+
+This is the default controller. When the keyboard is enabled, Midi controllers
+are disabled. When Midi controllers are enabled, the keyboard is disabled. It is
+possible to disable all devices.
+
+-}
 port enableKeyboard : () -> Cmd msg
 
 
 port disableKeyboard : () -> Cmd msg
 
 
+{-| Enable, disable, or select Midi devices
+
+getMidiDevices enables Midi control and requests a list of available devices.
+
+setMidiDevice sets the active Midi device in WebMidi.
+
+onMidiDevicesRequest receives a list of available Midi devices.
+
+WebMidi control has not been implemented in all browsers. If WebMidi is not
+available, getMidiDevices will return an empty list.
+
+-}
 port getMidiDevices : () -> Cmd msg
 
 
 port setMidiDevice : String -> Cmd msg
 
 
-port onMidiDevicesRequest : (E.Value -> msg) -> Sub msg
+port onMidiDevicesRequest : (Encode.Value -> msg) -> Sub msg
 
 
 updateMidiDevices : (List String -> msg) -> Sub msg
@@ -395,8 +388,8 @@ view model =
     { title = "Moon Forge"
     , body =
         [ layout
-            [ Background.color (rgba 0.16 0.16 0.16 1)
-            , Font.color (rgba 1 1 1 1)
+            [ Background.color Colors.darkGrey
+            , Font.color (rgb 1 1 1)
             , inFront <| viewNav
             ]
           <|
@@ -414,7 +407,7 @@ viewNav =
         [ width fill
         , paddingXY 0 15
         , Border.widthEach { bottom = 1, left = 0, right = 0, top = 0 }
-        , Border.color (rgba 0.11 0.12 0.14 1)
+        , Border.color Colors.nearBlack
         ]
         [ column [ centerX, width (px 800) ]
             [ row [ width fill ]
@@ -450,8 +443,8 @@ viewGlobalControls model =
         [ height fill
         , width (px 200)
         , paddingXY 10 10
-        , Background.color (rgba 0.16 0.16 0.16 1)
-        , Border.color (rgba 0.11 0.12 0.14 1)
+        , Background.color Colors.darkGrey
+        , Border.color Colors.nearBlack
         , Border.widthEach { bottom = 0, left = 0, right = 2, top = 0 }
         , Font.family Fonts.quattrocentoFont
         , spacing 5
@@ -482,7 +475,16 @@ viewControllersControls model =
                 , icon = Controls.checkbox
                 , label = Input.labelRight [ Font.size 14 ] (text "MIDI")
                 }
-            , Controls.radioGroup
+            , viewMidiOptions model
+            ]
+        ]
+
+
+viewMidiOptions : Model -> Element Msg
+viewMidiOptions model =
+    row []
+        [ column [ paddingXY 20 0 ]
+            [ Controls.radioGroup
                 SelectMidiDevice
                 Controls.smallRadioOption
                 model.midiDevices
@@ -507,32 +509,33 @@ viewInstrumentControls model =
                 , icon = Controls.checkbox
                 , label = Input.labelRight [ Font.size 14 ] (text "Custom Tuning")
                 }
+            , viewTuningPanel model
             ]
-                ++ (if model.tuningPanelVisible then
-                        [ row []
-                            [ column
-                                [ paddingXY 20 2
-                                , spacing 8
-                                ]
-                                [ el [ Font.size 12 ] <| text "• Temperament"
-                                , row
-                                    [ paddingXY 8 0
-                                    , spacing 5
-                                    , Border.color (rgba 0.3 0.3 0.3 1)
-                                    , Border.widthEach { bottom = 0, left = 0, right = 0, top = 0 }
-                                    ]
-                                    [ Controls.textInput UpdateTemperament "EDO" model.temperamentInput
-                                    , Controls.textInput UpdateBaseFrequency "Base Freq" model.baseFrequencyInput
-                                    , Controls.textInput UpdateBaseMidiNote "At MIDI" model.baseMidiNoteInput
-                                    ]
-                                ]
-                            ]
-                        ]
-
-                    else
-                        []
-                   )
         ]
+
+
+viewTuningPanel : Model -> Element Msg
+viewTuningPanel model =
+    if model.tuningPanelVisible then
+        row []
+            [ column
+                [ paddingXY 20 2
+                , spacing 8
+                ]
+                [ el [ Font.size 12 ] <| text "• Temperament"
+                , row
+                    [ paddingXY 8 0
+                    , spacing 5
+                    ]
+                    [ Controls.textInput UpdateTemperament "EDO" model.temperamentInput
+                    , Controls.textInput UpdateBaseFrequency "Base Freq" model.baseFrequencyInput
+                    , Controls.textInput UpdateBaseMidiNote "At MIDI" model.baseMidiNoteInput
+                    ]
+                ]
+            ]
+
+    else
+        el [] none
 
 
 
@@ -546,11 +549,11 @@ viewInstrument model =
         , width fill
         , centerX
         , paddingXY 10 5
-        , Background.color (rgba 0.95 0.95 0.95 0.9)
+        , Background.color Colors.lightGrey
         , Border.widthEach { bottom = 2, left = 2, right = 2, top = 2 }
-        , Border.color (rgba 0.11 0.12 0.14 1)
+        , Border.color Colors.nearBlack
         , Border.rounded 7
-        , Font.color (rgba 0.11 0.12 0.14 1)
+        , Font.color Colors.nearBlack
         , Font.family Fonts.quattrocentoFont
         , Font.size 12
         ]
@@ -662,3 +665,39 @@ viewGain model =
             ]
         , row [ centerX ] [ text "Gain" ]
         ]
+
+
+
+-- SHOW
+
+
+oscillatorToString : Oscillator -> String
+oscillatorToString oscillator =
+    case oscillator of
+        Sine ->
+            "sine"
+
+        Square ->
+            "square"
+
+        Triangle ->
+            "triangle"
+
+        Sawtooth ->
+            "sawtooth"
+
+
+filterToString : Filter -> String
+filterToString filter =
+    case filter of
+        Lowpass ->
+            "lowpass"
+
+        Highpass ->
+            "highpass"
+
+        Bandpass ->
+            "bandpass"
+
+        Notch ->
+            "notch"

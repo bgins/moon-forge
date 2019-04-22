@@ -3,10 +3,10 @@ module UI.Controls exposing (checkbox, radioGroup, smallRadioOption, textInput)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Events exposing (..)
 import Element.Font as Font
 import Element.Input as Input
-import Fonts
+import UI.Colors as Colors
+import UI.Fonts as Fonts
 
 
 
@@ -24,18 +24,18 @@ textInput tomsg label currentText =
         , paddingXY 2 0
         , Font.size 10
         , Font.center
-        , Background.color (rgba 0.16 0.16 0.16 1)
-        , Border.color (rgba 0.3 0.3 0.3 1)
+        , Background.color Colors.darkGrey
+        , Border.color (rgb 0.3 0.3 0.3)
         , Border.width 1
         , Border.rounded 1
         , focused
             [ Border.shadow
                 { offset = ( 0, 0 )
                 , blur = 0
-                , color = rgba 235 235 235 0
+                , color = rgb 0 0 0
                 , size = 0
                 }
-            , Border.color (rgba 0.5 0.5 0.5 1)
+            , Border.color (rgb 0.5 0.5 0.5)
             ]
         ]
         { onChange = \newText -> tomsg newText
@@ -77,10 +77,10 @@ smallRadioOption label =
                 , Font.size 12
                 , case optionState of
                     Input.Selected ->
-                        paddingXY 20 2
+                        paddingXY 0 2
 
                     _ ->
-                        paddingXY 28 2
+                        paddingXY 8 2
                 ]
             <|
                 case optionState of
@@ -101,18 +101,14 @@ checkbox checked =
          ]
             ++ (if checked then
                     [ Border.width 2
-                    , Border.color (rgba 0.9 0.9 0.9 1)
-
-                    -- , Background.color (rgba 0.1 0.1 0.1 1)
-                    , Background.color (rgba 0.788 0.486 0.31 1)
-
-                    -- , Background.color (rgba 0.5 0.5 0.7 1)
+                    , Border.color Colors.lightGrey
+                    , Background.color Colors.orange
                     ]
 
                 else
                     [ Border.width 1
-                    , Border.color (rgba 0.7 0.7 0.7 1)
-                    , Background.color (rgba 0.9 0.9 0.9 1)
+                    , Border.color (rgb 0.7 0.7 0.7)
+                    , Background.color Colors.lightGrey
                     ]
                )
         )
