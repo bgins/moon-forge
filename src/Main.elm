@@ -7,12 +7,13 @@ import Element.Border as Border
 import Element.Events exposing (..)
 import Element.Font as Font
 import Element.Input as Input
-import Fonts
 import Html exposing (Html)
-import Html.Attributes exposing (title)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as E
+import UI.Controls as Controls
+import UI.Fonts as Fonts
+import UI.Instrument as Instrument
 
 
 
@@ -76,7 +77,7 @@ init flags =
         0.5
         0.1
         0.2
-        LPF
+        Lowpass
         1000
         1
         0.1
@@ -130,22 +131,22 @@ oscillatorToString oscillator =
 
 
 type Filter
-    = LPF
-    | HPF
-    | BPF
+    = Lowpass
+    | Highpass
+    | Bandpass
     | Notch
 
 
 filterToString : Filter -> String
 filterToString filter =
     case filter of
-        LPF ->
+        Lowpass ->
             "lowpass"
 
-        HPF ->
+        Highpass ->
             "highpass"
 
-        BPF ->
+        Bandpass ->
             "bandpass"
 
         Notch ->
@@ -399,20 +400,12 @@ view model =
             , inFront <| viewNav
             ]
           <|
-            column [ width fill, centerX ]
+            column [ width fill, height fill ]
                 [ viewNav
                 , viewBody model
                 ]
         ]
     }
-
-
-viewFrame : Model -> Element Msg
-viewFrame model =
-    column [ width fill, height fill ]
-        [ viewNav
-        , viewGlobalControls model
-        ]
 
 
 viewNav : Element Msg
@@ -480,31 +473,70 @@ viewControllersControls model =
             , Input.checkbox [ paddingXY 10 0 ]
                 { checked = model.keyboardEnabled
                 , onChange = ToggleKeyboard
-                , icon = controlsCheckbox
-                , label = Input.labelRight [] (text "Keyboard")
+                , icon = Controls.checkbox
+                , label = Input.labelRight [ Font.size 14 ] (text "Keyboard")
                 }
             , Input.checkbox [ paddingXY 10 0 ]
                 { checked = model.midiEnabled
                 , onChange = ToggleMidi
-                , icon = controlsCheckbox
-                , label = Input.labelRight [] (text "MIDI")
+                , icon = Controls.checkbox
+                , label = Input.labelRight [ Font.size 14 ] (text "MIDI")
                 }
-            , controlButtonGroup SelectMidiDevice model.midiDevices model.selectedMidiDevice "Midi device selection"
+            , Controls.radioGroup
+                SelectMidiDevice
+                Controls.smallRadioOption
+                model.midiDevices
+                model.selectedMidiDevice
+                "Midi device selection"
             ]
         ]
 
 
-viewBody : Model -> Element Msg
-viewBody model =
-    row
-        [ width fill
-        , paddingXY 0 30
-        , inFront <| viewGlobalControls model
-        ]
-        [ column [ centerX, spacing 15 ]
-            [ viewInstrument model
+viewInstrumentControls : Model -> Element Msg
+viewInstrumentControls model =
+    row []
+        [ column [ spacing 5 ] <|
+            [ el
+                [ paddingXY 0 5
+                , Font.size 18
+                ]
+                (text "Instrument")
+            , Input.checkbox [ paddingXY 10 0 ]
+                { checked = model.tuningPanelVisible
+                , onChange = ToggleTuningPanel
+                , icon = Controls.checkbox
+                , label = Input.labelRight [ Font.size 14 ] (text "Custom Tuning")
+                }
             ]
+                ++ (if model.tuningPanelVisible then
+                        [ row []
+                            [ column
+                                [ paddingXY 20 2
+                                , spacing 8
+                                ]
+                                [ el [ Font.size 12 ] <| text "• Temperament"
+                                , row
+                                    [ paddingXY 8 0
+                                    , spacing 5
+                                    , Border.color (rgba 0.3 0.3 0.3 1)
+                                    , Border.widthEach { bottom = 0, left = 0, right = 0, top = 0 }
+                                    ]
+                                    [ Controls.textInput UpdateTemperament "EDO" model.temperamentInput
+                                    , Controls.textInput UpdateBaseFrequency "Base Freq" model.baseFrequencyInput
+                                    , Controls.textInput UpdateBaseMidiNote "At MIDI" model.baseMidiNoteInput
+                                    ]
+                                ]
+                            ]
+                        ]
+
+                    else
+                        []
+                   )
         ]
+
+
+
+-- VIEW INSTRUMENT
 
 
 viewInstrument : Model -> Element Msg
@@ -559,7 +591,14 @@ viewPanels model =
 viewOscillator : Model -> Element Msg
 viewOscillator model =
     column [ height fill, spacing 5 ]
-        [ row panelStyle [ oscillatorButtonGroup model ]
+        [ row Instrument.panelStyle
+            [ Instrument.verticalButtonGroup "Oscillator selection"
+                model.oscillator
+                ToggleOscillator
+                Instrument.verticalSvgButton
+                oscillatorToString
+                [ Sine, Square, Triangle, Sawtooth ]
+            ]
         , row [ centerX ] [ text "Osc" ]
         ]
 
@@ -567,12 +606,12 @@ viewOscillator model =
 viewAmplitudeEnvelope : Model -> Element Msg
 viewAmplitudeEnvelope model =
     column [ height fill, spacing 5 ]
-        [ row panelStyle
-            [ sliderGroup
-                [ slider "A" 1 model.ampEnvAttack displayTime AdjustAmpEnvAttack
-                , slider "D" 1 model.ampEnvDecay displayTime AdjustAmpEnvDecay
-                , slider "S" 1 model.ampEnvSustain displayMagnitude AdjustAmpEnvSustain
-                , slider "R" 1 model.ampEnvRelease displayTime AdjustAmpEnvRelease
+        [ row Instrument.panelStyle
+            [ Instrument.sliderGroup
+                [ Instrument.slider "A" 1 model.ampEnvAttack Instrument.displayTime AdjustAmpEnvAttack
+                , Instrument.slider "D" 1 model.ampEnvDecay Instrument.displayTime AdjustAmpEnvDecay
+                , Instrument.slider "S" 1 model.ampEnvSustain Instrument.displayMagnitude AdjustAmpEnvSustain
+                , Instrument.slider "R" 1 model.ampEnvRelease Instrument.displayTime AdjustAmpEnvRelease
                 ]
             ]
         , row [ centerX ] [ text "Amplitude Envelope" ]
@@ -582,12 +621,17 @@ viewAmplitudeEnvelope model =
 viewFilter : Model -> Element Msg
 viewFilter model =
     column [ height fill, spacing 5 ]
-        [ row panelStyle
-            [ filterButtonGroup model
-            , spacer
-            , sliderGroup
-                [ slider "Freq" 20000 model.filterFreq displayFrequency AdjustFilterFreq
-                , slider "Q" 20 model.filterQ displayMagnitude AdjustFilterQ
+        [ row Instrument.panelStyle
+            [ Instrument.verticalButtonGroup "Filter selection"
+                model.filter
+                ToggleFilter
+                Instrument.verticalSvgButton
+                filterToString
+                [ Lowpass, Highpass, Bandpass, Notch ]
+            , Instrument.spacer
+            , Instrument.sliderGroup
+                [ Instrument.slider "Freq" 20000 model.filterFreq Instrument.displayFrequency AdjustFilterFreq
+                , Instrument.slider "Q" 20 model.filterQ Instrument.displayMagnitude AdjustFilterQ
                 ]
             ]
         , row [ centerX ] [ text "Filter" ]
@@ -597,12 +641,12 @@ viewFilter model =
 viewFilterEnvelope : Model -> Element Msg
 viewFilterEnvelope model =
     column [ height fill, spacing 5 ]
-        [ row panelStyle
-            [ sliderGroup
-                [ slider "A" 1 model.filterEnvAttack displayTime AdjustFilterEnvAttack
-                , slider "D" 1 model.filterEnvDecay displayTime AdjustFilterEnvDecay
-                , slider "S" 1 model.filterEnvSustain displayMagnitude AdjustFilterEnvSustain
-                , slider "R" 1 model.filterEnvRelease displayTime AdjustFilterEnvRelease
+        [ row Instrument.panelStyle
+            [ Instrument.sliderGroup
+                [ Instrument.slider "A" 1 model.filterEnvAttack Instrument.displayTime AdjustFilterEnvAttack
+                , Instrument.slider "D" 1 model.filterEnvDecay Instrument.displayTime AdjustFilterEnvDecay
+                , Instrument.slider "S" 1 model.filterEnvSustain Instrument.displayMagnitude AdjustFilterEnvSustain
+                , Instrument.slider "R" 1 model.filterEnvRelease Instrument.displayTime AdjustFilterEnvRelease
                 ]
             ]
         , row [ centerX ] [ text "Filter Envelope" ]
@@ -612,339 +656,9 @@ viewFilterEnvelope model =
 viewGain : Model -> Element Msg
 viewGain model =
     column [ height fill, spacing 5 ]
-        [ row panelStyle
-            [ sliderGroup [ slider "" 1 model.gain displayMagnitude AdjustGain ] ]
+        [ row Instrument.panelStyle
+            [ Instrument.sliderGroup
+                [ Instrument.slider "" 1 model.gain Instrument.displayMagnitude AdjustGain ]
+            ]
         , row [ centerX ] [ text "Gain" ]
         ]
-
-
-
--- TEXT INPUTS
-
-
-type alias Label =
-    String
-
-
-controlsTextInput : (String -> Msg) -> Label -> String -> Element Msg
-controlsTextInput toMsg label currentText =
-    Input.text
-        [ width fill
-        , paddingXY 2 0
-        , Font.size 10
-        , Font.center
-        , Background.color (rgba 0.16 0.16 0.16 1)
-        , Border.color (rgba 0.3 0.3 0.3 1)
-        , Border.width 1
-        , Border.rounded 1
-        , focused
-            [ Border.shadow
-                { offset = ( 0, 0 )
-                , blur = 0
-                , color = rgba 235 235 235 0
-                , size = 0
-                }
-            , Border.color (rgba 0.5 0.5 0.5 1)
-            ]
-        ]
-        { onChange = \newText -> toMsg newText
-        , label = Input.labelAbove [] (text label)
-        , placeholder = Just (Input.placeholder [] (text ""))
-        , text = currentText
-        }
-
-
-
--- BUTTON AND RADIO GROUPS
-
-
-controlsRadioGroup :
-    (String -> Msg)
-    -> (String -> Input.Option String Msg)
-    -> List String
-    -> String
-    -> String
-    -> Element Msg
-controlsRadioGroup msg toRadioOption options selectedOption label =
-    Input.radio
-        [ width fill, centerX ]
-        { onChange = \choice -> msg choice
-        , options =
-            List.map toRadioOption options
-        , selected = Just selectedOption
-        , label = Input.labelHidden label
-        }
-
-
-controlSmallRadioOption : String -> Input.Option String Msg
-controlSmallRadioOption label =
-    Input.optionWith label <|
-        \optionState ->
-            row
-                [ width fill
-                , height fill
-                , Font.size 12
-                , case optionState of
-                    Input.Selected ->
-                        paddingXY 20 2
-
-                    _ ->
-                        paddingXY 28 2
-                ]
-            <|
-                case optionState of
-                    Input.Selected ->
-                        [ text <| "• " ++ label ]
-
-                    _ ->
-                        [ text label ]
-
-
-oscillatorButtonGroup : Model -> Element Msg
-oscillatorButtonGroup model =
-    Input.radio
-        [ width fill, centerX ]
-        { onChange = \choice -> ToggleOscillator choice
-        , options =
-            [ Input.optionWith Sine <| verticalSvgButton <| oscillatorToString Sine
-            , Input.optionWith Square <| verticalSvgButton <| oscillatorToString Square
-            , Input.optionWith Triangle <| verticalSvgButton <| oscillatorToString Triangle
-            , Input.optionWith Sawtooth <| verticalSvgButton <| oscillatorToString Sawtooth
-            ]
-        , selected = Just model.oscillator
-        , label = Input.labelHidden "Oscillator selection"
-        }
-
-
-filterButtonGroup : Model -> Element Msg
-filterButtonGroup model =
-    Input.radio
-        [ width fill, centerX ]
-        { onChange = \choice -> ToggleFilter choice
-        , options =
-            [ Input.optionWith Lowpass <| verticalSvgButton <| filterToString Lowpass
-            , Input.optionWith Higpass <| verticalSvgButton <| filterToString Higpass
-            , Input.optionWith Bandpass <| verticalSvgButton <| filterToString Bandpass
-            , Input.optionWith Notch <| verticalSvgButton <| filterToString Notch
-            ]
-        , selected = Just model.filter
-        , label = Input.labelHidden "Filter selection"
-        }
-
-
-verticalButton : ButtonLabel -> (Input.OptionState -> Element Msg)
-verticalButton label =
-    \optionState ->
-        row
-            [ width fill
-            , paddingXY 3 7
-            , height fill
-            , Border.widthEach { bottom = 0, left = 2, right = 0, top = 0 }
-            , Border.rounded 1
-            , case optionState of
-                Input.Selected ->
-                    -- Border.color (rgba 0.788 0.486 0.31 1)
-                    Border.color (rgba 0.5 0.5 0.7 1)
-
-                _ ->
-                    Border.color (rgba 0.75 0.75 0.75 1)
-            ]
-        <|
-            [ text label ]
-
-
-verticalSvgButton : ButtonLabel -> (Input.OptionState -> Element Msg)
-verticalSvgButton label =
-    \optionState ->
-        row
-            [ width fill
-            , paddingXY 3 3
-            , height fill
-            , Border.widthEach { bottom = 0, left = 2, right = 0, top = 0 }
-            , Border.rounded 1
-            , case optionState of
-                Input.Selected ->
-                    Border.color (rgba 0.5 0.5 0.7 1)
-
-                _ ->
-                    Border.color (rgba 0.75 0.75 0.75 1)
-            ]
-        <|
-            [ image [] { src = "./assets/" ++ label ++ ".svg", description = label } ]
-
-
-type alias ButtonLabel =
-    String
-
-
-
--- SLIDERS
-
-
-type alias SliderLabel =
-    String
-
-
-type alias ScalingFactor =
-    Float
-
-
-type alias ParamValue =
-    Float
-
-
-type alias DisplayFunction =
-    Float -> String
-
-
-sliderGroup : List (Element Msg) -> Element Msg
-sliderGroup sliders =
-    column [ height fill, paddingXY 4 4 ]
-        [ row [ height fill ] sliders
-        ]
-
-
-slider :
-    SliderLabel
-    -> ScalingFactor
-    -> ParamValue
-    -> DisplayFunction
-    -> (Float -> Msg)
-    -> Element Msg
-slider label scalingFactor paramValue displayFunction adjustValue =
-    column
-        [ height fill
-        , spacing 2
-        ]
-        [ Input.slider
-            [ height fill
-            , width (px 30)
-            , behindContent <|
-                el
-                    [ width (px 1)
-                    , height fill
-                    , centerX
-                    , Background.color (rgba 0.5 0.5 0.5 1)
-                    , Border.rounded 2
-                    ]
-                    none
-            ]
-            { onChange = \newSliderVal -> adjustValue <| (newSliderVal ^ 2) * scalingFactor
-            , label = Input.labelBelow [ centerX ] <| text label
-            , min = 0.0001
-            , max = 1
-            , step = Just 0.001
-            , value = sqrt (paramValue / scalingFactor)
-            , thumb = sliderThumb
-            }
-        , el
-            [ centerX
-            , Font.size 8
-            , Font.color (rgba 0.3 0.3 0.3 1)
-            ]
-          <|
-            text <|
-                displayFunction paramValue
-        ]
-
-
-
--- CUSTOM ELEMENTS
-
-
-sliderThumb : Input.Thumb
-sliderThumb =
-    Input.thumb
-        [ Element.width (Element.px 16)
-        , Element.height (Element.px 6)
-        , Border.width 1
-        , Border.color (rgba 0.9 0.9 0.9 1)
-        , Background.color (rgba 0.11 0.12 0.14 1)
-        , Border.rounded 2
-        ]
-
-
-controlsCheckbox : Bool -> Element msg
-controlsCheckbox checked =
-    el
-        ([ width (px 10)
-         , height (px 10)
-         , centerY
-         , Border.rounded 1
-         ]
-            ++ (if checked then
-                    [ Border.width 2
-                    , Border.color (rgba 0.9 0.9 0.9 1)
-
-                    -- , Background.color (rgba 0.1 0.1 0.1 1)
-                    , Background.color (rgba 0.788 0.486 0.31 1)
-
-                    -- , Background.color (rgba 0.5 0.5 0.7 1)
-                    ]
-
-                else
-                    [ Border.width 1
-                    , Border.color (rgba 0.7 0.7 0.7 1)
-                    , Background.color (rgba 0.9 0.9 0.9 1)
-                    ]
-               )
-        )
-    <|
-        el [] none
-
-
-spacer : Element Msg
-spacer =
-    column [ height fill, paddingXY 3 6 ]
-        [ row
-            [ height fill
-            , Border.widthEach { bottom = 0, left = 1, right = 0, top = 0 }
-            , Border.color (rgba 0.8 0.8 0.8 1)
-            ]
-            [ el [] none ]
-        ]
-
-
-
--- STYLES
-
-
-panelStyle : List (Attribute msg)
-panelStyle =
-    [ width fill
-    , height fill
-    , Border.width 1
-    , Border.color (rgba 0.8 0.8 0.8 1)
-    , Border.rounded 2
-    ]
-
-
-
--- LABELS
-
-
-displayMagnitude : Float -> String
-displayMagnitude val =
-    String.fromFloat
-        (toFloat (round (val * 100)) / 100)
-
-
-displayTime : Float -> String
-displayTime time =
-    String.fromFloat
-        -- (toFloat (round (time * 100)) / 100)
-        (toFloat (round (time * 1000)) / 1000)
-        ++ "s"
-
-
-displayFrequency : Float -> String
-displayFrequency freq =
-    if freq >= 1000 then
-        String.fromFloat
-            (toFloat (round (freq / 100)) / 10)
-            ++ "kHz"
-
-    else
-        String.fromInt
-            (round (freq * 100) // 100)
-            ++ "Hz"
