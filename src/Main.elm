@@ -62,6 +62,7 @@ type alias Model =
     , temperamentInput : String
     , baseFrequencyInput : String
     , baseMidiNoteInput : String
+    , assetsPath : String
     }
 
 
@@ -107,6 +108,7 @@ init flags =
         "12"
         "261.625"
         "60"
+        "./assets/"
     , Cmd.none
     )
 
@@ -600,7 +602,7 @@ viewOscillator model =
             [ Instrument.verticalButtonGroup "Oscillator selection"
                 model.oscillator
                 ToggleOscillator
-                Instrument.verticalSvgButton
+                (Instrument.verticalSvgButton model.assetsPath)
                 oscillatorToString
                 [ Sine, Square, Triangle, Sawtooth ]
             ]
@@ -630,7 +632,7 @@ viewFilter model =
             [ Instrument.verticalButtonGroup "Filter selection"
                 model.filter
                 ToggleFilter
-                Instrument.verticalSvgButton
+                (Instrument.verticalSvgButton model.assetsPath)
                 filterToString
                 [ Lowpass, Highpass, Bandpass, Notch ]
             , Instrument.spacer

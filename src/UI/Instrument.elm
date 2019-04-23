@@ -9,6 +9,14 @@ import UI.Colors as Colors
 import UI.Fonts as Fonts
 
 
+type alias Label =
+    String
+
+
+type alias Path =
+    String
+
+
 
 -- BUTTONS
 
@@ -40,8 +48,8 @@ buttonOption toButton toString option =
     Input.optionWith option <| toButton <| toString option
 
 
-verticalSvgButton : Label -> (Input.OptionState -> Element msg)
-verticalSvgButton label =
+verticalSvgButton : Path -> Label -> (Input.OptionState -> Element msg)
+verticalSvgButton assetsPath label =
     \optionState ->
         row
             [ paddingXY 3 3
@@ -55,7 +63,8 @@ verticalSvgButton label =
                     Border.color (rgb 0.75 0.75 0.75)
             ]
         <|
-            [ image [] { src = "./assets/" ++ label ++ ".svg", description = label } ]
+            -- [ image [] { src = "./assets/" ++ label ++ ".svg", description = label } ]
+            [ image [] { src = assetsPath ++ label ++ ".svg", description = label } ]
 
 
 
@@ -154,10 +163,6 @@ spacer =
 
 
 -- LABELS
-
-
-type alias Label =
-    String
 
 
 displayMagnitude : Float -> String
