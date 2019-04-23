@@ -1,6 +1,6 @@
 import Mousetrap from "mousetrap-ts";
 
-import { IInstrument } from "./audio";
+import { IInstrument } from "../audio/audio";
 
 class Keyboard {
   keyboard: Mousetrap = new Mousetrap(window.document.body);

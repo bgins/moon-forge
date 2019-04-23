@@ -1,6 +1,6 @@
 import webmidi, { Input } from "webmidi";
 
-import { IInstrument } from "./audio";
+import { IInstrument } from "../audio/audio";
 
 class Midi {
   input: Input;
