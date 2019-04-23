@@ -257,38 +257,45 @@ update msg model =
 
         ToggleTuningPanel checked ->
             ( { model | tuningPanelVisible = checked }
-            , Cmd.none
+            , if checked then
+                Cmd.batch
+                    [ maybeAdjustAudioParam (String.toInt model.temperamentInput) "edo" Encode.int
+                    , maybeAdjustAudioParam (String.toFloat model.baseFrequencyInput) "baseFrequency" Encode.float
+                    , maybeAdjustAudioParam (String.toInt model.baseMidiNoteInput) "baseMidiNote" Encode.int
+                    ]
+
+              else
+                Cmd.batch
+                    [ adjustAudioParam "edo" (Encode.int 12)
+                    , adjustAudioParam "baseFrequency" (Encode.float 261.625)
+                    , adjustAudioParam "baseMidiNote" (Encode.int 60)
+                    ]
             )
 
         UpdateTemperament newVal ->
             ( { model | temperamentInput = newVal }
-            , case String.toInt newVal of
-                Just val ->
-                    adjustAudioParam "edo" (Encode.int val)
-
-                Nothing ->
-                    Cmd.none
+            , maybeAdjustAudioParam (String.toInt newVal) "edo" Encode.int
             )
 
         UpdateBaseFrequency newVal ->
             ( { model | baseFrequencyInput = newVal }
-            , case String.toFloat newVal of
-                Just val ->
-                    adjustAudioParam "baseFrequency" (Encode.float val)
-
-                Nothing ->
-                    Cmd.none
+            , maybeAdjustAudioParam (String.toFloat newVal) "baseFrequency" Encode.float
             )
 
         UpdateBaseMidiNote newVal ->
             ( { model | baseMidiNoteInput = newVal }
-            , case String.toInt newVal of
-                Just val ->
-                    adjustAudioParam "baseMidiNote" (Encode.int val)
-
-                Nothing ->
-                    Cmd.none
+            , maybeAdjustAudioParam (String.toInt newVal) "baseMidiNote" Encode.int
             )
+
+
+maybeAdjustAudioParam : Maybe a -> String -> (a -> Encode.Value) -> Cmd Msg
+maybeAdjustAudioParam maybeVal paramName encoder =
+    case maybeVal of
+        Just val ->
+            adjustAudioParam paramName (encoder val)
+
+        Nothing ->
+            Cmd.none
 
 
 
