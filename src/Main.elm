@@ -416,9 +416,13 @@ viewNav =
         , Border.widthEach { bottom = 1, left = 0, right = 0, top = 0 }
         , Border.color Colors.nearBlack
         ]
-        [ column [ centerX, width (px 800) ]
+        [ column [ width (px 800), centerX ]
             [ row [ width fill ]
-                [ column [ centerX, Font.family Fonts.cinzelFont, Font.size 36 ]
+                [ column
+                    [ centerX
+                    , Font.family Fonts.cinzelFont
+                    , Font.size 36
+                    ]
                     [ text "Moon Forge"
                     ]
                 ]
@@ -434,7 +438,7 @@ viewBody model =
         , paddingXY 0 30
         , inFront <| viewGlobalControls model
         ]
-        [ column [ centerX, alignTop ]
+        [ column [ alignTop, centerX ]
             [ viewInstrument model
             ]
         ]
@@ -447,8 +451,8 @@ viewBody model =
 viewGlobalControls : Model -> Element Msg
 viewGlobalControls model =
     column
-        [ height fill
-        , width (px 200)
+        [ width (px 200)
+        , height fill
         , paddingXY 10 10
         , Background.color Colors.darkGrey
         , Border.color Colors.nearBlack
@@ -464,12 +468,8 @@ viewGlobalControls model =
 viewControllersControls : Model -> Element Msg
 viewControllersControls model =
     row []
-        [ column [ spacing 5 ]
-            [ el
-                [ paddingXY 0 5
-                , Font.size 18
-                ]
-                (text "Controllers")
+        [ column [ paddingXY 0 5, spacing 5 ]
+            [ el [ Font.size 18 ] (text "Controllers")
             , Input.checkbox [ paddingXY 10 0 ]
                 { checked = model.keyboardEnabled
                 , onChange = ToggleKeyboard
@@ -504,12 +504,8 @@ viewMidiOptions model =
 viewInstrumentControls : Model -> Element Msg
 viewInstrumentControls model =
     row []
-        [ column [ spacing 5 ] <|
-            [ el
-                [ paddingXY 0 5
-                , Font.size 18
-                ]
-                (text "Instrument")
+        [ column [ paddingXY 0 5, spacing 5 ] <|
+            [ el [ Font.size 18 ] (text "Instrument")
             , Input.checkbox [ paddingXY 10 0 ]
                 { checked = model.tuningPanelVisible
                 , onChange = ToggleTuningPanel
@@ -552,14 +548,13 @@ viewTuningPanel model =
 viewInstrument : Model -> Element Msg
 viewInstrument model =
     row
-        [ height (px 173)
-        , width fill
-        , centerX
-        , paddingXY 10 5
+        [ width fill
+        , height (px 175)
+        , paddingXY 10 6
         , Background.color Colors.lightGrey
-        , Border.widthEach { bottom = 2, left = 2, right = 2, top = 2 }
         , Border.color Colors.nearBlack
         , Border.rounded 7
+        , Border.widthEach { bottom = 2, left = 2, right = 2, top = 2 }
         , Font.color Colors.nearBlack
         , Font.family Fonts.quattrocentoFont
         , Font.size 12
@@ -574,8 +569,8 @@ viewInstrument model =
 viewInstrumentName : Element Msg
 viewInstrumentName =
     row
-        [ height (px 30)
-        , width fill
+        [ width fill
+        , height (px 30)
         , Font.family Fonts.cinzelFont
         , Font.size 24
         ]
@@ -585,8 +580,8 @@ viewInstrumentName =
 viewPanels : Model -> Element Msg
 viewPanels model =
     row
-        [ height fill
-        , width fill
+        [ width fill
+        , height fill
         , paddingXY 5 3
         , spacing 5
         ]

@@ -22,8 +22,6 @@ textInput tomsg label currentText =
     Input.text
         [ width fill
         , paddingXY 2 0
-        , Font.size 10
-        , Font.center
         , Background.color Colors.darkGrey
         , Border.color (rgb 0.3 0.3 0.3)
         , Border.width 1
@@ -37,6 +35,8 @@ textInput tomsg label currentText =
                 }
             , Border.color (rgb 0.5 0.5 0.5)
             ]
+        , Font.size 10
+        , Font.center
         ]
         { onChange = \newText -> tomsg newText
         , label = Input.labelAbove [] (text label)
@@ -74,13 +74,13 @@ smallRadioOption label =
             row
                 [ width fill
                 , height fill
-                , Font.size 12
                 , case optionState of
                     Input.Selected ->
                         paddingXY 0 2
 
                     _ ->
                         paddingXY 8 2
+                , Font.size 12
                 ]
             <|
                 case optionState of

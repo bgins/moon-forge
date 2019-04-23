@@ -22,8 +22,7 @@ verticalButtonGroup :
     -> List a
     -> Element msg
 verticalButtonGroup label selectedOption tomsg toButton toString options =
-    Input.radio
-        [ width fill, centerX ]
+    Input.radio []
         { onChange = \choice -> tomsg choice
         , options =
             List.map (buttonOption toButton toString) options
@@ -45,11 +44,9 @@ verticalSvgButton : Label -> (Input.OptionState -> Element msg)
 verticalSvgButton label =
     \optionState ->
         row
-            [ width fill
-            , paddingXY 3 3
-            , height fill
-            , Border.widthEach { bottom = 0, left = 2, right = 0, top = 0 }
+            [ paddingXY 3 3
             , Border.rounded 1
+            , Border.widthEach { bottom = 0, left = 2, right = 0, top = 0 }
             , case optionState of
                 Input.Selected ->
                     Border.color Colors.purple
@@ -80,8 +77,7 @@ type alias DisplayFunction =
 sliderGroup : List (Element msg) -> Element msg
 sliderGroup sliders =
     column [ height fill, paddingXY 4 4 ]
-        [ row [ height fill ] sliders
-        ]
+        [ row [ height fill ] sliders ]
 
 
 slider :
@@ -97,8 +93,8 @@ slider label scalingFactor paramValue displayFunction adjustValue =
         , spacing 2
         ]
         [ Input.slider
-            [ height fill
-            , width (px 30)
+            [ width (px 30)
+            , height fill
             , behindContent <|
                 el
                     [ width (px 1)
@@ -131,8 +127,8 @@ slider label scalingFactor paramValue displayFunction adjustValue =
 sliderThumb : Input.Thumb
 sliderThumb =
     Input.thumb
-        [ Element.width (Element.px 16)
-        , Element.height (Element.px 6)
+        [ width (px 16)
+        , height (px 6)
         , Border.width 1
         , Border.color Colors.lightGrey
         , Background.color Colors.nearBlack
@@ -149,8 +145,8 @@ spacer =
     column [ height fill, paddingXY 3 6 ]
         [ row
             [ height fill
-            , Border.widthEach { bottom = 0, left = 1, right = 0, top = 0 }
             , Border.color (rgb 0.8 0.8 0.8)
+            , Border.widthEach { bottom = 0, left = 1, right = 0, top = 0 }
             ]
             [ el [] none ]
         ]
