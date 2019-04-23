@@ -115,11 +115,19 @@ class Luna implements IInstrument {
       this.audioContext.currentTime
     );
 
-    const filterFreqGainNode = this.audioContext.createGain();
-    // filterFreqGainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-    filterFreqGainNode.connect(filterNode.frequency);
+    const filterFreqScaler = this.audioContext.createGain();
+    filterFreqScaler.gain.setValueAtTime(0, this.audioContext.currentTime);
 
-    const filterEnv = new EnvGen(this.audioContext, filterFreqGainNode.gain);
+    const filterFreqMultiplier = this.audioContext.createGain();
+    filterFreqMultiplier.gain.setValueAtTime(
+      8000,
+      this.audioContext.currentTime
+    );
+
+    filterFreqScaler.connect(filterFreqMultiplier.gain);
+    filterFreqMultiplier.connect(filterNode.frequency);
+
+    const filterEnv = new EnvGen(this.audioContext, filterFreqScaler.gain);
     // const filterEnv = new EnvGen(this.audioContext, filterNode.gain);
     filterEnv.mode = this.filterEnvOptions.mode;
     filterEnv.attackTime = this.filterEnvOptions.attack;
@@ -128,7 +136,10 @@ class Luna implements IInstrument {
     filterEnv.releaseTime = this.filterEnvOptions.release;
 
     console.log("filter freq on: " + filterNode.frequency.value);
-    console.log("filter freq gain on: " + filterFreqGainNode.gain.value);
+    console.log("filter freq scaler on: " + filterFreqScaler.gain.value);
+    console.log(
+      "filter freq multiplier on: " + filterFreqMultiplier.gain.value
+    );
     oscillator.connect(ampGainNode);
     ampGainNode.connect(filterNode);
     filterNode.connect(this.masterGainNode);
@@ -143,7 +154,8 @@ class Luna implements IInstrument {
       ampEnv: ampEnv,
       filterNode: filterNode,
       filterEnv: filterEnv,
-      filterFreqGainNode: filterFreqGainNode
+      filterFreqGainNode: filterFreqMultiplier,
+      filterFreqScaler: filterFreqScaler
     };
     this.notes[midiNote] = note;
   }
@@ -155,8 +167,10 @@ class Luna implements IInstrument {
 
     const filterNode = this.notes[midiNote].filterNode;
     const filterFreqGainNode = this.notes[midiNote].filterFreqGainNode;
+    const filterFreqScaler = this.notes[midiNote].filterFreqScaler;
     console.log("filter freq off: " + filterNode.frequency.value);
-    console.log("filter freq gain off: " + filterFreqGainNode.gain.value);
+    console.log("filter freq scaler off: " + filterFreqScaler.gain.value);
+    console.log("filter freq multiplier off: " + filterFreqGainNode.gain.value);
 
     ampEnv.gateOff();
     filterEnv.gateOff();

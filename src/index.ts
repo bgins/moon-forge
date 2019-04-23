@@ -1,7 +1,7 @@
-import { Keyboard } from "./keyboard";
 import { Elm } from "./Main.elm";
-import { Luna } from "./luna";
-import { Midi } from "./midi";
+import { Keyboard } from "./controllers/keyboard";
+import { Luna } from "./audio/luna";
+import { Midi } from "./controllers/midi";
 
 let app = Elm.Main.init({
   node: document.querySelector("main"),

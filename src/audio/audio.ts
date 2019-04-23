@@ -16,6 +16,7 @@ interface INote {
   filterNode: IBiquadFilterNode;
   filterEnv: any;
   filterFreqGainNode: IGainNode;
+  filterFreqScaler: IGainNode;
 }
 
 interface IEnvelopeOptions {
