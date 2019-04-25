@@ -3,12 +3,37 @@ import { Keyboard } from "./controllers/keyboard";
 import { Luna } from "./audio/luna";
 import { Midi } from "./controllers/midi";
 
-let app = Elm.Main.init({
+const flags = {
+  oscillator: "sine",
+  ampEnvAttack: 0.5,
+  ampEnvDecay: 0.5,
+  ampEnvSustain: 0.1,
+  ampEnvRelease: 0.2,
+  filter: "lowpass",
+  filterFreq: 1000,
+  filterQ: 1,
+  filterEnvAttack: 0.1,
+  filterEnvDecay: 0.2,
+  filterEnvSustain: 0.5,
+  filterEnvRelease: 0.5,
+  gain: 0.2,
+  keyboardEnabled: true,
+  midiEnabled: false,
+  midiDevices: [],
+  selectedMidiDevice: "",
+  tuningPanelVisible: false,
+  temperamentInput: "12",
+  baseFrequencyInput: "261.625",
+  baseMidiNoteInput: "60",
+  assetsPath: "./assets/"
+};
+
+const app = Elm.Main.init({
   node: document.querySelector("main"),
-  flags: { audioParams: [] }
+  flags: flags
 });
 
-const luna = new Luna();
+const luna = new Luna(flags);
 const keyboard = new Keyboard();
 const midi = new Midi();
 keyboard.enable(luna);

@@ -14,55 +14,66 @@ class Luna implements IInstrument {
   audioContext: IAudioContext;
   masterGainNode: IGainNode;
   notes: INote[] = [];
-  oscillatorOptions: IOscillatorOptions = {
-    type: "triangle",
-    detune: 0,
-    frequency: 440,
-    channelCount: 2,
-    channelCountMode: "max",
-    channelInterpretation: "speakers"
-  };
-  ampGainOptions: IGainOptions = {
-    gain: 0.05,
-    channelCount: 2,
-    channelCountMode: "max",
-    channelInterpretation: "speakers"
-  };
-  ampEnvOptions: IEnvelopeOptions = {
-    mode: "ADSR",
-    attack: 0.5,
-    decay: 0.5,
-    sustain: 0.1,
-    release: 0.2
-  };
-  filterOptions: IBiquadFilterOptions = {
-    type: "lowpass",
-    frequency: 1000,
-    Q: 1,
-    detune: 0,
-    gain: 0,
-    channelCount: 2,
-    channelCountMode: "max",
-    channelInterpretation: "speakers"
-  };
-  filterEnvOptions: IEnvelopeOptions = {
-    mode: "ADSR",
-    attack: 0.1,
-    decay: 0.2,
-    sustain: 0.5,
-    release: 0.5
-  };
-  masterGainOptions: IGainOptions = {
-    gain: 0.3,
-    channelCount: 2,
-    channelCountMode: "max",
-    channelInterpretation: "speakers"
-  };
-  edo: number = 12;
-  baseFrequency: number = 261.625;
-  baseMidiNote: number = 60;
+  oscillatorOptions: IOscillatorOptions;
+  ampGainOptions: IGainOptions;
+  ampEnvOptions: IEnvelopeOptions;
+  filterOptions: IBiquadFilterOptions;
+  filterEnvOptions: IEnvelopeOptions;
+  masterGainOptions: IGainOptions;
+  edo: number;
+  baseFrequency: number;
+  baseMidiNote: number;
 
-  constructor() {
+  // give flags a type when the options are stable
+  constructor(flags: any) {
+    this.oscillatorOptions = {
+      type: flags.oscillator,
+      detune: 0,
+      frequency: 261.625,
+      channelCount: 2,
+      channelCountMode: "max",
+      channelInterpretation: "speakers"
+    };
+    this.ampGainOptions = {
+      gain: 0.05,
+      channelCount: 2,
+      channelCountMode: "max",
+      channelInterpretation: "speakers"
+    };
+    this.ampEnvOptions = {
+      mode: "ADSR",
+      attack: flags.ampEnvAttack,
+      decay: flags.ampEnvDecay,
+      sustain: flags.ampEnvSustain,
+      release: flags.ampEnvRelease
+    };
+    this.filterOptions = {
+      type: flags.filter,
+      frequency: flags.filterFreq,
+      Q: flags.filterQ,
+      detune: 0,
+      gain: 0,
+      channelCount: 2,
+      channelCountMode: "max",
+      channelInterpretation: "speakers"
+    };
+    this.filterEnvOptions = {
+      mode: "ADSR",
+      attack: flags.filterEnvAttack,
+      decay: flags.filterEnvDecay,
+      sustain: flags.filterEnvSustain,
+      release: flags.filterEnvRelease
+    };
+    this.masterGainOptions = {
+      gain: flags.gain,
+      channelCount: 2,
+      channelCountMode: "max",
+      channelInterpretation: "speakers"
+    };
+    this.edo = +flags.temperamentInput;
+    this.baseFrequency = +flags.baseFrequencyInput;
+    this.baseMidiNote = +flags.baseMidiNoteInput;
+
     this.audioContext = new AudioContext();
 
     this.masterGainNode = this.audioContext.createGain();

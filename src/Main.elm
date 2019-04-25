@@ -63,6 +63,8 @@ type alias Model =
     , baseFrequencyInput : String
     , baseMidiNoteInput : String
     , assetsPath : String
+    , errorMessage : String
+    , showErrorMessage : Bool
     }
 
 
@@ -82,45 +84,150 @@ type Filter
 
 init : Decode.Value -> ( Model, Cmd Msg )
 init flags =
-    let
-        audioParams =
-            Decode.decodeValue decodeFlags flags
-    in
-    ( Model
-        Sine
-        0.5
-        0.5
-        0.1
-        0.2
-        Lowpass
-        1000
-        1
-        0.1
-        0.2
-        0.5
-        0.5
-        0.3
-        True
-        False
-        []
-        ""
-        False
-        "12"
-        "261.625"
-        "60"
-        "./assets/"
+    ( toInitModel flags
     , Cmd.none
     )
 
 
+toInitModel : Decode.Value -> Model
+toInitModel flags =
+    case Decode.decodeValue decodeFlags flags of
+        Ok decodedFlags ->
+            Model
+                (case decodedFlags.oscillator of
+                    "sine" ->
+                        Sine
+
+                    "square" ->
+                        Square
+
+                    "triangle" ->
+                        Triangle
+
+                    "sawtooth" ->
+                        Sawtooth
+
+                    _ ->
+                        Sine
+                )
+                decodedFlags.ampEnvAttack
+                decodedFlags.ampEnvDecay
+                decodedFlags.ampEnvSustain
+                decodedFlags.ampEnvRelease
+                (case decodedFlags.filter of
+                    "lowpass" ->
+                        Lowpass
+
+                    "highpass" ->
+                        Highpass
+
+                    "bandpass" ->
+                        Bandpass
+
+                    "notch" ->
+                        Notch
+
+                    _ ->
+                        Lowpass
+                )
+                decodedFlags.filterFreq
+                decodedFlags.filterQ
+                decodedFlags.filterEnvAttack
+                decodedFlags.filterEnvDecay
+                decodedFlags.filterEnvSustain
+                decodedFlags.filterEnvRelease
+                decodedFlags.gain
+                decodedFlags.keyboardEnabled
+                decodedFlags.midiEnabled
+                decodedFlags.midiDevices
+                decodedFlags.selectedMidiDevice
+                decodedFlags.tuningPanelVisible
+                decodedFlags.temperamentInput
+                decodedFlags.baseFrequencyInput
+                decodedFlags.baseMidiNoteInput
+                decodedFlags.assetsPath
+                ""
+                False
+
+        Err err ->
+            Model
+                Sine
+                0.5
+                0.5
+                0.1
+                0.2
+                Lowpass
+                1000
+                1
+                0.1
+                0.2
+                0.5
+                0.5
+                0.2
+                True
+                False
+                []
+                ""
+                False
+                "12"
+                "261.625"
+                "60"
+                "./assets/"
+                "Something went wrong initializing the application. Defaults have been assigned."
+                True
+
+
 type alias Flags =
-    { audioParams : List String }
+    { oscillator : String
+    , ampEnvAttack : Float
+    , ampEnvDecay : Float
+    , ampEnvSustain : Float
+    , ampEnvRelease : Float
+    , filter : String
+    , filterFreq : Float
+    , filterQ : Float
+    , filterEnvAttack : Float
+    , filterEnvDecay : Float
+    , filterEnvSustain : Float
+    , filterEnvRelease : Float
+    , gain : Float
+    , keyboardEnabled : Bool
+    , midiEnabled : Bool
+    , midiDevices : List String
+    , selectedMidiDevice : String
+    , tuningPanelVisible : Bool
+    , temperamentInput : String
+    , baseFrequencyInput : String
+    , baseMidiNoteInput : String
+    , assetsPath : String
+    }
 
 
 decodeFlags : Decode.Decoder Flags
 decodeFlags =
     Decode.succeed Flags
-        |> required "audioParams" (Decode.list Decode.string)
+        |> required "oscillator" Decode.string
+        |> required "ampEnvAttack" Decode.float
+        |> required "ampEnvDecay" Decode.float
+        |> required "ampEnvSustain" Decode.float
+        |> required "ampEnvRelease" Decode.float
+        |> required "filter" Decode.string
+        |> required "filterFreq" Decode.float
+        |> required "filterQ" Decode.float
+        |> required "filterEnvAttack" Decode.float
+        |> required "filterEnvDecay" Decode.float
+        |> required "filterEnvSustain" Decode.float
+        |> required "filterEnvRelease" Decode.float
+        |> required "gain" Decode.float
+        |> required "keyboardEnabled" Decode.bool
+        |> required "midiEnabled" Decode.bool
+        |> required "midiDevices" (Decode.list Decode.string)
+        |> required "selectedMidiDevice" Decode.string
+        |> required "tuningPanelVisible" Decode.bool
+        |> required "temperamentInput" Decode.string
+        |> required "baseFrequencyInput" Decode.string
+        |> required "baseMidiNoteInput" Decode.string
+        |> required "assetsPath" Decode.string
 
 
 
@@ -149,6 +256,7 @@ type Msg
     | UpdateTemperament String
     | UpdateBaseFrequency String
     | UpdateBaseMidiNote String
+    | DismissErrorMessage
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -288,6 +396,13 @@ update msg model =
             ( { model | baseMidiNoteInput = newVal }
             , maybeAdjustAudioParam (String.toInt newVal) "baseMidiNote" Encode.int
             )
+
+        DismissErrorMessage ->
+            if model.showErrorMessage then
+                ( { model | showErrorMessage = False }, Cmd.none )
+
+            else
+                ( model, Cmd.none )
 
 
 maybeAdjustAudioParam : Maybe a -> String -> (a -> Encode.Value) -> Cmd Msg
@@ -440,14 +555,20 @@ viewBody model =
         , paddingXY 0 30
         , inFront <| viewGlobalControls model
         ]
-        [ column [ alignTop, centerX ]
+        [ column [ alignTop, centerX, spacing 10 ] <|
             [ viewInstrument model
             ]
+                ++ (if model.showErrorMessage then
+                        [ viewError model ]
+
+                    else
+                        []
+                   )
         ]
 
 
 
--- VIEW GLOBAL CONTROLS
+-- VIEW: GLOBAL CONTROLS
 
 
 viewGlobalControls : Model -> Element Msg
@@ -544,7 +665,7 @@ viewTuningPanel model =
 
 
 
--- VIEW INSTRUMENT
+-- VIEW: INSTRUMENT
 
 
 viewInstrument : Model -> Element Msg
@@ -668,6 +789,45 @@ viewGain model =
                 [ Instrument.slider "" 1 model.gain Instrument.displayMagnitude AdjustGain ]
             ]
         , row [ centerX ] [ text "Gain" ]
+        ]
+
+
+
+-- VIEW: ERROR MESSAGE
+
+
+viewError : Model -> Element Msg
+viewError model =
+    row
+        [ height (px 26)
+        , centerX
+        , paddingXY 4 4
+        , spacing 2
+        , Background.color Colors.lightGrey
+        , Border.color Colors.nearBlack
+        , Border.rounded 4
+        , Border.widthEach { bottom = 2, left = 2, right = 2, top = 2 }
+        , Font.color Colors.nearBlack
+        , Font.family Fonts.quattrocentoFont
+        , Font.size 12
+        ]
+        [ column [ alignTop ]
+            [ Input.button
+                [ paddingXY 2 0
+                , focused
+                    [ Border.shadow
+                        { offset = ( 0, 0 )
+                        , blur = 0
+                        , color = rgb 0 0 0
+                        , size = 0
+                        }
+                    ]
+                ]
+                { onPress = Just DismissErrorMessage
+                , label = el [ Font.color (rgb 0 0 0) ] <| text "x"
+                }
+            ]
+        , column [] [ text model.errorMessage ]
         ]
 
 
