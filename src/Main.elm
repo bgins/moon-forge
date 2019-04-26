@@ -557,13 +557,8 @@ viewBody model =
         ]
         [ column [ alignTop, centerX, spacing 10 ] <|
             [ viewInstrument model
+            , viewError model
             ]
-                ++ (if model.showErrorMessage then
-                        [ viewError model ]
-
-                    else
-                        []
-                   )
         ]
 
 
@@ -798,37 +793,41 @@ viewGain model =
 
 viewError : Model -> Element Msg
 viewError model =
-    row
-        [ height (px 26)
-        , centerX
-        , paddingXY 4 4
-        , spacing 2
-        , Background.color Colors.lightGrey
-        , Border.color Colors.nearBlack
-        , Border.rounded 4
-        , Border.widthEach { bottom = 2, left = 2, right = 2, top = 2 }
-        , Font.color Colors.nearBlack
-        , Font.family Fonts.quattrocentoFont
-        , Font.size 12
-        ]
-        [ column [ alignTop ]
-            [ Input.button
-                [ paddingXY 2 0
-                , focused
-                    [ Border.shadow
-                        { offset = ( 0, 0 )
-                        , blur = 0
-                        , color = rgb 0 0 0
-                        , size = 0
-                        }
-                    ]
-                ]
-                { onPress = Just DismissErrorMessage
-                , label = el [ Font.color (rgb 0 0 0) ] <| text "x"
-                }
+    if model.showErrorMessage then
+        row
+            [ height (px 26)
+            , centerX
+            , paddingXY 4 4
+            , spacing 2
+            , Background.color Colors.lightGrey
+            , Border.color Colors.nearBlack
+            , Border.rounded 4
+            , Border.widthEach { bottom = 2, left = 2, right = 2, top = 2 }
+            , Font.color Colors.nearBlack
+            , Font.family Fonts.quattrocentoFont
+            , Font.size 12
             ]
-        , column [] [ text model.errorMessage ]
-        ]
+            [ column [ alignTop ]
+                [ Input.button
+                    [ paddingXY 2 0
+                    , focused
+                        [ Border.shadow
+                            { offset = ( 0, 0 )
+                            , blur = 0
+                            , color = rgb 0 0 0
+                            , size = 0
+                            }
+                        ]
+                    ]
+                    { onPress = Just DismissErrorMessage
+                    , label = el [ Font.color (rgb 0 0 0) ] <| text "x"
+                    }
+                ]
+            , column [] [ text model.errorMessage ]
+            ]
+
+    else
+        el [] none
 
 
 
