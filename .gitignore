@@ -2,4 +2,11 @@
 elm-stuff/
 elm.js
 
-build/
+# parcel
+.cache
+dist/src*
+dist/favicon*
+dist/index.html
+
+# node
+node_modules/
