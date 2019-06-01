@@ -1,12 +1,12 @@
-module UI.Controls exposing (checkbox, radioGroup, smallRadioOption, textInput)
+module View.Controls exposing (checkbox, radioGroup, smallRadioOption, textInput)
 
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
-import UI.Colors as Colors
-import UI.Fonts as Fonts
+import View.Colors as Colors
+import View.Fonts as Fonts
 
 
 

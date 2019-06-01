@@ -1,12 +1,12 @@
-module UI.Instrument exposing (displayFrequency, displayMagnitude, displayTime, panelStyle, slider, sliderGroup, spacer, verticalButtonGroup, verticalSvgButton)
+module View.Instrument exposing (displayFrequency, displayMagnitude, displayTime, panelStyle, slider, sliderGroup, spacer, verticalButtonGroup, verticalSvgButton)
 
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
-import UI.Colors as Colors
-import UI.Fonts as Fonts
+import View.Colors as Colors
+import View.Fonts as Fonts
 
 
 type alias Label =

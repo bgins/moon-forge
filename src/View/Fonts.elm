@@ -1,4 +1,4 @@
-module UI.Fonts exposing (cinzelFont, quattrocentoFont)
+module View.Fonts exposing (cinzelFont, quattrocentoFont)
 
 import Element.Font as Font
 

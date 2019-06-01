@@ -1,4 +1,4 @@
-module UI.Colors exposing (darkGrey, lightGrey, nearBlack, orange, purple)
+module View.Colors exposing (darkGrey, lightGrey, nearBlack, orange, purple)
 
 import Element exposing (Color, rgb)
 

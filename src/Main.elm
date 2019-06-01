@@ -10,10 +10,10 @@ import Html exposing (Html)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
-import UI.Colors as Colors
-import UI.Controls as Controls
-import UI.Fonts as Fonts
-import UI.Instrument as Instrument
+import View.Colors as Colors
+import View.Controls as Controls
+import View.Fonts as Fonts
+import View.Instrument as Instrument
 
 
 
