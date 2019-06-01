@@ -105,9 +105,13 @@ app.ports.disableKeyboard.subscribe(() => {
 
 app.ports.getMidiDevices.subscribe(() => {
   console.log(midi.getInputNames());
+  console.log(midi.getSelectedInputName());
   midi.enable(luna);
   keyboard.disable();
-  app.ports.onMidiDevicesRequest.send({ midiDevices: midi.getInputNames() });
+  app.ports.onMidiDevicesRequest.send({
+    midiDevices: midi.getInputNames(),
+    selectedMidiDevice: midi.getSelectedInputName()
+  });
 });
 
 app.ports.setMidiDevice.subscribe(data => {

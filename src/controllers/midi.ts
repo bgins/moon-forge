@@ -26,6 +26,10 @@ class Midi {
     });
   }
 
+  getSelectedInputName(): string {
+    return this.input.name
+  }
+
   getInputNames(): string[] {
     return this.inputs.map(input => input.name);
   }

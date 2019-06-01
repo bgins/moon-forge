@@ -63,7 +63,6 @@ verticalSvgButton assetsPath label =
                     Border.color (rgb 0.75 0.75 0.75)
             ]
         <|
-            -- [ image [] { src = "./assets/" ++ label ++ ".svg", description = label } ]
             [ image [] { src = assetsPath ++ label ++ ".svg", description = label } ]
 
 

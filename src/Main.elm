@@ -251,7 +251,7 @@ type Msg
     | ToggleKeyboard Bool
     | ToggleMidi Bool
     | SelectMidiDevice String
-    | ReceiveMidiDevices (List String)
+    | ReceiveMidiDevices MidiDevicesPortMessage
     | ToggleTuningPanel Bool
     | UpdateTemperament String
     | UpdateBaseFrequency String
@@ -354,14 +354,17 @@ update msg model =
             , setMidiDevice newDevice
             )
 
-        ReceiveMidiDevices newMidiDevices ->
-            if List.isEmpty newMidiDevices then
+        ReceiveMidiDevices midiDevicesPortMessage ->
+            if List.isEmpty midiDevicesPortMessage.midiDevices then
                 ( { model | midiDevices = [ "No Midi devices available" ] }
                 , Cmd.none
                 )
 
             else
-                ( { model | midiDevices = newMidiDevices }
+                ( { model
+                    | midiDevices = midiDevicesPortMessage.midiDevices
+                    , selectedMidiDevice = midiDevicesPortMessage.selectedMidiDevice
+                  }
                 , Cmd.none
                 )
 
@@ -420,8 +423,12 @@ maybeAdjustAudioParam maybeVal paramName encoder =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    updateMidiDevices ReceiveMidiDevices
+subscriptions model =
+    if model.midiEnabled then
+        updateMidiDevices ReceiveMidiDevices
+
+    else
+        Sub.none
 
 
 
@@ -480,27 +487,30 @@ port setMidiDevice : String -> Cmd msg
 port onMidiDevicesRequest : (Encode.Value -> msg) -> Sub msg
 
 
-updateMidiDevices : (List String -> msg) -> Sub msg
+updateMidiDevices : (MidiDevicesPortMessage -> msg) -> Sub msg
 updateMidiDevices toMsg =
     onMidiDevicesRequest <|
         \value ->
             toMsg <|
                 case Decode.decodeValue decodeMidiDevices value of
                     Ok midiDevicesPortMessage ->
-                        midiDevicesPortMessage.midiDevices
+                        midiDevicesPortMessage
 
                     Err err ->
-                        []
+                        MidiDevicesPortMessage [] ""
 
 
 type alias MidiDevicesPortMessage =
-    { midiDevices : List String }
+    { midiDevices : List String
+    , selectedMidiDevice : String
+    }
 
 
 decodeMidiDevices : Decode.Decoder MidiDevicesPortMessage
 decodeMidiDevices =
     Decode.succeed MidiDevicesPortMessage
         |> required "midiDevices" (Decode.list Decode.string)
+        |> required "selectedMidiDevice" Decode.string
 
 
 
