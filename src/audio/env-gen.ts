@@ -70,9 +70,6 @@ class Envelope {
         this.valueAtGateClose = this.settings.sustainLevel;
       }
 
-      console.log("current value: " + this.targetParam.value);
-      console.log("vgc: " + this.valueAtGateClose);
-
       this.targetParam.cancelScheduledValues(gateClosedAt);
       this.targetParam.setValueAtTime(this.valueAtGateClose, gateClosedAt);
       this.targetParam.exponentialRampToValueAtTime(0.0001, this.endAt);
@@ -162,5 +159,4 @@ interface IEnvelopeSettings {
   // velocityScaling: number;
 }
 
-export default Envelope;
-// export { Envelope };
+export { Envelope };

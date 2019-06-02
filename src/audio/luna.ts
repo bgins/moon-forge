@@ -1,5 +1,5 @@
 // import EnvGen from "fastidious-envelope-generator";
-import Envelope from "./env-gen";
+import { Envelope } from "./env-gen";
 import {
   AudioContext,
   IAudioContext,
@@ -88,80 +88,75 @@ class Luna implements IInstrument {
   }
 
   playNote(midiNote: number): void {
-    // let freq = 261.625565 * 2 ** ((midiNote - 60) / 12);
-    let freq = this.baseFrequency * 2 ** ((midiNote - this.baseMidiNote) / this.edo);
-    console.log(freq);
+    if (this.notes[midiNote] && this.audioContext.currentTime < this.notes[midiNote].ampEnv.getEndTime()) {
+      console.log("here");
 
-    let oscillator = this.audioContext.createOscillator();
-    oscillator.type = this.oscillatorOptions.type;
-    oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+      this.notes[midiNote].oscillator.stop(this.audioContext.currentTime + 1000);
+      this.notes[midiNote].ampEnv.retrigger(this.audioContext.currentTime);
+    } else {
+      this.notes[midiNote] = null;
+      // let freq = 261.625565 * 2 ** ((midiNote - 60) / 12);
+      let freq = this.baseFrequency * 2 ** ((midiNote - this.baseMidiNote) / this.edo);
+      console.log(freq);
 
-    const ampGainNode = this.audioContext.createGain();
-    ampGainNode.gain.setValueAtTime(this.ampGainOptions.gain, this.audioContext.currentTime);
+      let oscillator = this.audioContext.createOscillator();
+      oscillator.type = this.oscillatorOptions.type;
+      oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
 
-    // const ampEnv = new EnvGen(this.audioContext, ampGainNode.gain);
-    // ampEnv.mode = this.ampEnvOptions.mode;
-    // ampEnv.attackTime = this.ampEnvOptions.attack;
-    // ampEnv.decayTime = this.ampEnvOptions.decay;
-    // ampEnv.sustainLevel = this.ampEnvOptions.sustain;
-    // ampEnv.releaseTime = this.ampEnvOptions.release;
+      const ampGainNode = this.audioContext.createGain();
+      ampGainNode.gain.setValueAtTime(this.ampGainOptions.gain, this.audioContext.currentTime);
 
-    const ampEnv = new Envelope(this.audioContext, {
-      attackTime: this.ampEnvOptions.attack,
-      decayTime: this.ampEnvOptions.decay,
-      sustainLevel: this.ampEnvOptions.sustain,
-      releaseTime: this.ampEnvOptions.release
-    });
-    ampEnv.connect(ampGainNode.gain);
+      const ampEnv = new Envelope(this.audioContext, {
+        attackTime: this.ampEnvOptions.attack,
+        decayTime: this.ampEnvOptions.decay,
+        sustainLevel: this.ampEnvOptions.sustain,
+        releaseTime: this.ampEnvOptions.release
+      });
+      ampEnv.connect(ampGainNode.gain);
 
-    const filterNode = this.audioContext.createBiquadFilter();
-    filterNode.type = this.filterOptions.type;
-    filterNode.Q.setValueAtTime(this.filterOptions.Q, this.audioContext.currentTime);
-    filterNode.frequency.setValueAtTime(this.filterOptions.frequency, this.audioContext.currentTime);
+      const filterNode = this.audioContext.createBiquadFilter();
+      filterNode.type = this.filterOptions.type;
+      filterNode.Q.setValueAtTime(this.filterOptions.Q, this.audioContext.currentTime);
+      filterNode.frequency.setValueAtTime(this.filterOptions.frequency, this.audioContext.currentTime);
 
-    // const filterEnv = new EnvGen(this.audioContext, filterFreqScaler.gain);
-    // const filterEnv = new EnvGen(this.audioContext, filterNode.gain);
-    // filterEnv.mode = this.filterEnvOptions.mode;
-    // filterEnv.attackTime = this.filterEnvOptions.attack;
-    // filterEnv.decayTime = this.filterEnvOptions.decay;
-    // filterEnv.sustainLevel = this.filterEnvOptions.sustain;
-    // filterEnv.releaseTime = this.filterEnvOptions.release;
+      // const filterEnv = new EnvGen(this.audioContext, filterFreqScaler.gain);
+      // const filterEnv = new EnvGen(this.audioContext, filterNode.gain);
+      // filterEnv.mode = this.filterEnvOptions.mode;
+      // filterEnv.attackTime = this.filterEnvOptions.attack;
+      // filterEnv.decayTime = this.filterEnvOptions.decay;
+      // filterEnv.sustainLevel = this.filterEnvOptions.sustain;
+      // filterEnv.releaseTime = this.filterEnvOptions.release;
 
-    oscillator.connect(ampGainNode);
-    ampGainNode.connect(filterNode);
-    filterNode.connect(this.masterGainNode);
+      oscillator.connect(ampGainNode);
+      ampGainNode.connect(filterNode);
+      filterNode.connect(this.masterGainNode);
 
-    ampEnv.openGate(this.audioContext.currentTime);
-    // filterEnv.gateOn();
-    oscillator.start();
+      ampEnv.openGate(this.audioContext.currentTime);
+      // filterEnv.gateOn();
+      oscillator.start();
 
-    const note = {
-      oscillator: oscillator,
-      ampGainNode: ampGainNode,
-      ampEnv: ampEnv,
-      filterNode: filterNode,
+      const note = {
+        oscillator: oscillator,
+        ampGainNode: ampGainNode,
+        ampEnv: ampEnv,
+        filterNode: filterNode,
 
-      filterEnv: null
-      // filterEnv: filterEnv,
-    };
-    this.notes[midiNote] = note;
+        filterEnv: null
+        // filterEnv: filterEnv,
+      };
+      this.notes[midiNote] = note;
+    }
   }
 
   stopNote(midiNote: number): void {
     const oscillator = this.notes[midiNote].oscillator;
     const ampEnv = this.notes[midiNote].ampEnv;
 
-    // const filterNode = this.notes[midiNote].filterNode;
-    // const filterEnv = this.notes[midiNote].filterEnv;
-
     ampEnv.closeGate(this.audioContext.currentTime);
     // filterEnv.closeGate(this.audioContext.currentTime);
 
     const stopAt = ampEnv.getEndTime();
-
     oscillator.stop(stopAt);
-
-    this.notes[midiNote] = null;
   }
 }
 
