@@ -159,9 +159,9 @@ toInitModel flags =
                 Lowpass
                 2000
                 2
-                0.1
-                0.2
-                0.5
+                0.05
+                0.05
+                1
                 0.5
                 0.2
                 True

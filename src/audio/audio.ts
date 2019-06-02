@@ -14,7 +14,6 @@ interface INote {
 }
 
 interface IEnvelopeOptions {
-  mode: string;
   attack: number;
   decay: number;
   sustain: number;

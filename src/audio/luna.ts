@@ -42,7 +42,6 @@ class Luna implements IInstrument {
       channelInterpretation: "speakers"
     };
     this.ampEnvOptions = {
-      mode: "ADSR",
       attack: flags.ampEnvAttack,
       decay: flags.ampEnvDecay,
       sustain: flags.ampEnvSustain,
@@ -59,7 +58,6 @@ class Luna implements IInstrument {
       channelInterpretation: "speakers"
     };
     this.filterEnvOptions = {
-      mode: "ADSR",
       attack: flags.filterEnvAttack,
       decay: flags.filterEnvDecay,
       sustain: flags.filterEnvSustain,
@@ -93,6 +91,7 @@ class Luna implements IInstrument {
 
       this.notes[midiNote].oscillator.stop(this.audioContext.currentTime + 1000);
       this.notes[midiNote].ampEnv.retrigger(this.audioContext.currentTime);
+      this.notes[midiNote].filterEnv.retrigger(this.audioContext.currentTime);
     } else {
       this.notes[midiNote] = null;
       // let freq = 261.625565 * 2 ** ((midiNote - 60) / 12);
@@ -119,30 +118,30 @@ class Luna implements IInstrument {
       filterNode.Q.setValueAtTime(this.filterOptions.Q, this.audioContext.currentTime);
       filterNode.frequency.setValueAtTime(this.filterOptions.frequency, this.audioContext.currentTime);
 
-      // const filterEnv = new EnvGen(this.audioContext, filterFreqScaler.gain);
-      // const filterEnv = new EnvGen(this.audioContext, filterNode.gain);
-      // filterEnv.mode = this.filterEnvOptions.mode;
-      // filterEnv.attackTime = this.filterEnvOptions.attack;
-      // filterEnv.decayTime = this.filterEnvOptions.decay;
-      // filterEnv.sustainLevel = this.filterEnvOptions.sustain;
-      // filterEnv.releaseTime = this.filterEnvOptions.release;
+      const filterEnv = new Envelope(this.audioContext, {
+        attackTime: this.filterEnvOptions.attack,
+        attackFinalLevel: this.filterOptions.frequency,
+        decayTime: this.filterEnvOptions.decay,
+        sustainLevel: this.filterEnvOptions.sustain * this.filterOptions.frequency,
+        releaseTime: this.filterEnvOptions.release
+      });
+      filterEnv.connect(filterNode.frequency);
 
       oscillator.connect(ampGainNode);
       ampGainNode.connect(filterNode);
       filterNode.connect(this.masterGainNode);
 
-      ampEnv.openGate(this.audioContext.currentTime);
-      // filterEnv.gateOn();
-      oscillator.start();
+      const now = this.audioContext.currentTime;
+      ampEnv.openGate(now);
+      filterEnv.openGate(now);
+      oscillator.start(now);
 
       const note = {
         oscillator: oscillator,
         ampGainNode: ampGainNode,
         ampEnv: ampEnv,
         filterNode: filterNode,
-
-        filterEnv: null
-        // filterEnv: filterEnv,
+        filterEnv: filterEnv
       };
       this.notes[midiNote] = note;
     }
@@ -151,9 +150,11 @@ class Luna implements IInstrument {
   stopNote(midiNote: number): void {
     const oscillator = this.notes[midiNote].oscillator;
     const ampEnv = this.notes[midiNote].ampEnv;
+    const filterEnv = this.notes[midiNote].filterEnv;
 
-    ampEnv.closeGate(this.audioContext.currentTime);
-    // filterEnv.closeGate(this.audioContext.currentTime);
+    const now = this.audioContext.currentTime;
+    ampEnv.closeGate(now);
+    filterEnv.closeGate(now);
 
     const stopAt = ampEnv.getEndTime();
     oscillator.stop(stopAt);
