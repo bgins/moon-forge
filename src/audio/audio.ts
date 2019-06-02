@@ -1,8 +1,4 @@
-import {
-  IOscillatorNode,
-  IGainNode,
-  IBiquadFilterNode
-} from "standardized-audio-context";
+import { IOscillatorNode, IGainNode, IBiquadFilterNode } from "standardized-audio-context";
 
 interface IInstrument {
   playNote: (midiNote: number) => void;
@@ -15,8 +11,6 @@ interface INote {
   ampEnv: any;
   filterNode: IBiquadFilterNode;
   filterEnv: any;
-  filterFreqGainNode: IGainNode;
-  filterFreqScaler: IGainNode;
 }
 
 interface IEnvelopeOptions {
