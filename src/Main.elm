@@ -741,10 +741,10 @@ viewAmplitudeEnvelope model =
     column [ height fill, spacing 5 ]
         [ row Instrument.panelStyle
             [ Instrument.sliderGroup
-                [ Instrument.slider "A" 1 model.ampEnvAttack Instrument.displayTime AdjustAmpEnvAttack
-                , Instrument.slider "D" 1 model.ampEnvDecay Instrument.displayTime AdjustAmpEnvDecay
+                [ Instrument.slider "A" 2 model.ampEnvAttack Instrument.displayTime AdjustAmpEnvAttack
+                , Instrument.slider "D" 2 model.ampEnvDecay Instrument.displayTime AdjustAmpEnvDecay
                 , Instrument.slider "S" 1 model.ampEnvSustain Instrument.displayMagnitude AdjustAmpEnvSustain
-                , Instrument.slider "R" 1 model.ampEnvRelease Instrument.displayTime AdjustAmpEnvRelease
+                , Instrument.slider "R" 3 model.ampEnvRelease Instrument.displayTime AdjustAmpEnvRelease
                 ]
             ]
         , row [ centerX ] [ text "Amplitude Envelope" ]
@@ -776,10 +776,10 @@ viewFilterEnvelope model =
     column [ height fill, spacing 5 ]
         [ row Instrument.panelStyle
             [ Instrument.sliderGroup
-                [ Instrument.slider "A" 1 model.filterEnvAttack Instrument.displayTime AdjustFilterEnvAttack
-                , Instrument.slider "D" 1 model.filterEnvDecay Instrument.displayTime AdjustFilterEnvDecay
+                [ Instrument.slider "A" 2 model.filterEnvAttack Instrument.displayTime AdjustFilterEnvAttack
+                , Instrument.slider "D" 2 model.filterEnvDecay Instrument.displayTime AdjustFilterEnvDecay
                 , Instrument.slider "S" 1 model.filterEnvSustain Instrument.displayMagnitude AdjustFilterEnvSustain
-                , Instrument.slider "R" 1 model.filterEnvRelease Instrument.displayTime AdjustFilterEnvRelease
+                , Instrument.slider "R" 3 model.filterEnvRelease Instrument.displayTime AdjustFilterEnvRelease
                 ]
             ]
         , row [ centerX ] [ text "Filter Envelope" ]
