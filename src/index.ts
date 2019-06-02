@@ -4,14 +4,14 @@ import { Luna } from "./audio/luna";
 import { Midi } from "./controllers/midi";
 
 const flags = {
-  oscillator: "sine",
-  ampEnvAttack: 0.5,
-  ampEnvDecay: 0.5,
-  ampEnvSustain: 0.1,
-  ampEnvRelease: 0.2,
+  oscillator: "triangle",
+  ampEnvAttack: 0.05,
+  ampEnvDecay: 0.05,
+  ampEnvSustain: 0.5,
+  ampEnvRelease: 0.5,
   filter: "lowpass",
-  filterFreq: 1000,
-  filterQ: 1,
+  filterFreq: 2000,
+  filterQ: 2,
   filterEnvAttack: 0.1,
   filterEnvDecay: 0.2,
   filterEnvSustain: 0.5,

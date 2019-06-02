@@ -151,14 +151,14 @@ toInitModel flags =
 
         Err err ->
             Model
-                Sine
+                Triangle
+                0.05
+                0.05
                 0.5
                 0.5
-                0.1
-                0.2
                 Lowpass
-                1000
-                1
+                2000
+                2
                 0.1
                 0.2
                 0.5
