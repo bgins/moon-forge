@@ -6,7 +6,8 @@ import {
   IGainNode,
   IOscillatorOptions,
   IBiquadFilterOptions,
-  IGainOptions
+  IGainOptions,
+  IBiquadFilterNode
 } from "standardized-audio-context";
 
 import { IInstrument, INote, IEnvelopeOptions } from "./audio";
@@ -14,6 +15,8 @@ import { IInstrument, INote, IEnvelopeOptions } from "./audio";
 class Luna implements IInstrument {
   audioContext: IAudioContext;
   masterGainNode: IGainNode;
+  bottomFilter: IBiquadFilterNode;
+  topFilter: IBiquadFilterNode;
   notes: INote[] = [];
   oscillatorOptions: IOscillatorOptions;
   ampGainOptions: IGainOptions;
@@ -77,7 +80,19 @@ class Luna implements IInstrument {
 
     this.masterGainNode = this.audioContext.createGain();
     this.masterGainNode.gain.setValueAtTime(this.masterGainOptions.gain, this.audioContext.currentTime);
-    this.masterGainNode.connect(this.audioContext.destination);
+    // this.masterGainNode.connect(this.audioContext.destination);
+
+    this.bottomFilter = this.audioContext.createBiquadFilter();
+    this.bottomFilter.type = "highpass";
+    this.bottomFilter.frequency.setValueAtTime(60, this.audioContext.currentTime);
+
+    this.topFilter = this.audioContext.createBiquadFilter();
+    this.topFilter.type = "lowpass";
+    this.topFilter.frequency.setValueAtTime(18000, this.audioContext.currentTime);
+
+    this.masterGainNode.connect(this.topFilter);
+    this.topFilter.connect(this.bottomFilter);
+    this.bottomFilter.connect(this.audioContext.destination);
   }
 
   updateMasterGain(gain: number): void {
