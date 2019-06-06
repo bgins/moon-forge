@@ -14,7 +14,6 @@
     "typescript": "^3.4.3"
   },
   "dependencies": {
-    "fastidious-envelope-generator": "^2.0.0",
     "mousetrap-ts": "^1.0.0",
     "standardized-audio-context": "^19.1.1",
     "webmidi": "^2.3.3"

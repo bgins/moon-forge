@@ -7,7 +7,8 @@ class Envelope {
     attackFinalLevel: 1,
     decayTime: 0,
     sustainLevel: 1,
-    releaseTime: 0
+    releaseTime: 0,
+    endValue: 0.0001
   };
   audioContext: IAudioContext;
   targetParam: IAudioParam;
@@ -29,6 +30,7 @@ class Envelope {
 
     if (settings.initialLevel) this.settings.initialLevel = settings.initialLevel;
     if (settings.attackFinalLevel) this.settings.attackFinalLevel = settings.attackFinalLevel;
+    if (settings.endValue) this.settings.endValue = settings.endValue;
   }
 
   connect(targetParam: IAudioParam): void {
@@ -72,7 +74,7 @@ class Envelope {
 
       this.targetParam.cancelScheduledValues(gateClosedAt);
       this.targetParam.setValueAtTime(this.valueAtGateClose, gateClosedAt);
-      this.targetParam.exponentialRampToValueAtTime(0.0001, this.endAt);
+      this.targetParam.exponentialRampToValueAtTime(this.settings.endValue, this.endAt);
       this.gateOpen = false;
     }
   }
@@ -107,7 +109,10 @@ class Envelope {
 
         const currentValue =
           this.valueAtGateClose *
-          Math.pow(0.0001 / this.valueAtGateClose, (retriggerAt - this.gateClosedAt) / this.settings.releaseTime);
+          Math.pow(
+            this.settings.endValue / this.valueAtGateClose,
+            (retriggerAt - this.gateClosedAt) / this.settings.releaseTime
+          );
 
         this.reschedule(retriggerAt, currentValue);
 
@@ -116,13 +121,14 @@ class Envelope {
       } else {
         // this case is not likely to be reached
         console.log("retrigger after envelope completed");
-        this.openGate(retriggerAt);
+        // this.openGate(retriggerAt);
       }
     }
   }
 
   private reschedule(retriggerAt: number, currentValue: number): void {
     console.log("rescheduling");
+    console.log(currentValue);
 
     // this.targetParam.cancelAndHoldAtTime(retriggerAt);
     this.targetParam.cancelScheduledValues(retriggerAt);
@@ -133,6 +139,8 @@ class Envelope {
       retriggerAt -
       ((this.settings.attackTime * (currentValue - this.settings.initialLevel)) / this.settings.attackFinalLevel -
         this.settings.initialLevel);
+
+    // patch in new settings?
 
     this.startDecayAt = attackWouldHaveStartedAt + this.settings.attackTime;
     this.startSustainAt = this.startDecayAt + this.settings.decayTime;
@@ -153,6 +161,7 @@ interface IEnvelopeSettings {
   decayTime: number;
   sustainLevel: number;
   releaseTime: number;
+  endValue?: number;
   // attackCurveType?: string;
   // decayCurveType?: string;
   // releaseCurveType?: string;

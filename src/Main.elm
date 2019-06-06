@@ -154,7 +154,7 @@ toInitModel flags =
                 Triangle
                 0.05
                 0.05
-                0.5
+                1
                 0.5
                 Lowpass
                 2000
@@ -163,7 +163,7 @@ toInitModel flags =
                 0.05
                 1
                 0.5
-                0.2
+                0.5
                 True
                 False
                 []

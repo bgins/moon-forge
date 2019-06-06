@@ -1,4 +1,3 @@
-// import EnvGen from "fastidious-envelope-generator";
 import { Envelope } from "./env-gen";
 import {
   AudioContext,
@@ -7,7 +6,8 @@ import {
   IOscillatorOptions,
   IBiquadFilterOptions,
   IGainOptions,
-  IBiquadFilterNode
+  IBiquadFilterNode,
+  IDynamicsCompressorNode
 } from "standardized-audio-context";
 
 import { IInstrument, INote, IEnvelopeOptions } from "./audio";
@@ -17,6 +17,7 @@ class Luna implements IInstrument {
   masterGainNode: IGainNode;
   bottomFilter: IBiquadFilterNode;
   topFilter: IBiquadFilterNode;
+  limiter: IDynamicsCompressorNode;
   notes: INote[] = [];
   oscillatorOptions: IOscillatorOptions;
   ampGainOptions: IGainOptions;
@@ -39,7 +40,7 @@ class Luna implements IInstrument {
       channelInterpretation: "speakers"
     };
     this.ampGainOptions = {
-      gain: 0.05,
+      gain: 0.001,
       channelCount: 2,
       channelCountMode: "max",
       channelInterpretation: "speakers"
@@ -79,8 +80,7 @@ class Luna implements IInstrument {
     this.audioContext = new AudioContext();
 
     this.masterGainNode = this.audioContext.createGain();
-    this.masterGainNode.gain.setValueAtTime(this.masterGainOptions.gain, this.audioContext.currentTime);
-    // this.masterGainNode.connect(this.audioContext.destination);
+    this.masterGainNode.gain.setValueAtTime(this.masterGainOptions.gain / 5, this.audioContext.currentTime);
 
     this.bottomFilter = this.audioContext.createBiquadFilter();
     this.bottomFilter.type = "highpass";
@@ -90,20 +90,25 @@ class Luna implements IInstrument {
     this.topFilter.type = "lowpass";
     this.topFilter.frequency.setValueAtTime(18000, this.audioContext.currentTime);
 
+    this.limiter = this.audioContext.createDynamicsCompressor();
+    this.limiter.ratio.setValueAtTime(20, this.audioContext.currentTime);
+    this.limiter.knee.setValueAtTime(0.0, this.audioContext.currentTime);
+    this.limiter.threshold.setValueAtTime(0.0, this.audioContext.currentTime);
+    this.limiter.attack.setValueAtTime(0.005, this.audioContext.currentTime);
+    this.limiter.release.setValueAtTime(0.1, this.audioContext.currentTime);
+
     this.masterGainNode.connect(this.topFilter);
     this.topFilter.connect(this.bottomFilter);
-    this.bottomFilter.connect(this.audioContext.destination);
+    this.bottomFilter.connect(this.limiter);
+    this.limiter.connect(this.audioContext.destination);
   }
 
   updateMasterGain(gain: number): void {
-    this.masterGainOptions.gain = gain;
-    this.masterGainNode.gain.setValueAtTime(this.masterGainOptions.gain, this.audioContext.currentTime);
+    this.masterGainNode.gain.setValueAtTime(gain / 5, this.audioContext.currentTime);
   }
 
   playNote(midiNote: number): void {
     if (this.notes[midiNote] && this.audioContext.currentTime < this.notes[midiNote].ampEnv.getEndTime()) {
-      console.log("here");
-
       this.notes[midiNote].oscillator.stop(this.audioContext.currentTime + 1000);
       this.notes[midiNote].ampEnv.retrigger(this.audioContext.currentTime);
       this.notes[midiNote].filterEnv.retrigger(this.audioContext.currentTime);
@@ -138,7 +143,8 @@ class Luna implements IInstrument {
         attackFinalLevel: this.filterOptions.frequency,
         decayTime: this.filterEnvOptions.decay,
         sustainLevel: this.filterEnvOptions.sustain * this.filterOptions.frequency,
-        releaseTime: this.filterEnvOptions.release
+        releaseTime: this.filterEnvOptions.release,
+        endValue: 60
       });
       filterEnv.connect(filterNode.frequency);
 
@@ -151,7 +157,7 @@ class Luna implements IInstrument {
       filterEnv.openGate(now);
       oscillator.start(now);
 
-      const note = {
+      const note: INote = {
         oscillator: oscillator,
         ampGainNode: ampGainNode,
         ampEnv: ampEnv,
