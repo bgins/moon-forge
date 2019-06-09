@@ -45,16 +45,16 @@ app.ports.updateAudioParam.subscribe(data => {
       luna.oscillatorOptions.type = data.val;
       break;
     case "ampEnvAttack":
-      luna.ampEnvOptions.attack = data.val;
+      luna.ampEnvOptions.attackTime = data.val;
       break;
     case "ampEnvDecay":
-      luna.ampEnvOptions.decay = data.val;
+      luna.ampEnvOptions.decayTime = data.val;
       break;
     case "ampEnvSustain":
-      luna.ampEnvOptions.sustain = data.val;
+      luna.ampEnvOptions.sustainLevel = data.val;
       break;
     case "ampEnvRelease":
-      luna.ampEnvOptions.release = data.val;
+      luna.ampEnvOptions.releaseTime = data.val;
       break;
     case "filterType":
       luna.filterOptions.type = data.val;
@@ -66,16 +66,16 @@ app.ports.updateAudioParam.subscribe(data => {
       luna.filterOptions.Q = data.val;
       break;
     case "filterEnvAttack":
-      luna.filterEnvOptions.attack = data.val;
+      luna.filterEnvOptions.attackTime = data.val;
       break;
     case "filterEnvDecay":
-      luna.filterEnvOptions.decay = data.val;
+      luna.filterEnvOptions.decayTime = data.val;
       break;
     case "filterEnvSustain":
-      luna.filterEnvOptions.sustain = data.val;
+      luna.filterEnvOptions.sustainLevel = data.val;
       break;
     case "filterEnvRelease":
-      luna.filterEnvOptions.release = data.val;
+      luna.filterEnvOptions.releaseTime = data.val;
       break;
     case "masterGain":
       luna.updateMasterGain(data.val);

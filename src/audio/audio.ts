@@ -14,11 +14,4 @@ interface INote {
   filterEnv: Envelope;
 }
 
-interface IEnvelopeOptions {
-  attack: number;
-  decay: number;
-  sustain: number;
-  release: number;
-}
-
-export { IEnvelopeOptions, IInstrument, INote };
+export { IInstrument, INote };

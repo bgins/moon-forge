@@ -1,4 +1,4 @@
-import { Envelope } from "./env-gen";
+import { Envelope, IEnvelopeSettings } from "./env-gen";
 import {
   AudioContext,
   IAudioContext,
@@ -10,7 +10,7 @@ import {
   IDynamicsCompressorNode
 } from "standardized-audio-context";
 
-import { IInstrument, INote, IEnvelopeOptions } from "./audio";
+import { IInstrument, INote } from "./audio";
 
 class Luna implements IInstrument {
   audioContext: IAudioContext;
@@ -21,9 +21,9 @@ class Luna implements IInstrument {
   notes: INote[] = [];
   oscillatorOptions: IOscillatorOptions;
   ampGainOptions: IGainOptions;
-  ampEnvOptions: IEnvelopeOptions;
+  ampEnvOptions: IEnvelopeSettings;
   filterOptions: IBiquadFilterOptions;
-  filterEnvOptions: IEnvelopeOptions;
+  filterEnvOptions: IEnvelopeSettings;
   masterGainOptions: IGainOptions;
   edo: number;
   baseFrequency: number;
@@ -46,10 +46,10 @@ class Luna implements IInstrument {
       channelInterpretation: "speakers"
     };
     this.ampEnvOptions = {
-      attack: flags.ampEnvAttack,
-      decay: flags.ampEnvDecay,
-      sustain: flags.ampEnvSustain,
-      release: flags.ampEnvRelease
+      attackTime: flags.ampEnvAttack,
+      decayTime: flags.ampEnvDecay,
+      sustainLevel: flags.ampEnvSustain,
+      releaseTime: flags.ampEnvRelease
     };
     this.filterOptions = {
       type: flags.filter,
@@ -62,10 +62,10 @@ class Luna implements IInstrument {
       channelInterpretation: "speakers"
     };
     this.filterEnvOptions = {
-      attack: flags.filterEnvAttack,
-      decay: flags.filterEnvDecay,
-      sustain: flags.filterEnvSustain,
-      release: flags.filterEnvRelease
+      attackTime: flags.filterEnvAttack,
+      decayTime: flags.filterEnvDecay,
+      sustainLevel: flags.filterEnvSustain,
+      releaseTime: flags.filterEnvRelease
     };
     this.masterGainOptions = {
       gain: flags.gain,
@@ -110,8 +110,29 @@ class Luna implements IInstrument {
   playNote(midiNote: number): void {
     if (this.notes[midiNote] && this.audioContext.currentTime < this.notes[midiNote].ampEnv.getEndTime()) {
       this.notes[midiNote].oscillator.stop(this.audioContext.currentTime + 1000);
-      this.notes[midiNote].ampEnv.retrigger(this.audioContext.currentTime);
-      this.notes[midiNote].filterEnv.retrigger(this.audioContext.currentTime);
+
+      this.notes[midiNote].oscillator.type = this.oscillatorOptions.type;
+      this.notes[midiNote].filterNode.type = this.filterOptions.type;
+      this.notes[midiNote].filterNode.Q.setValueAtTime(this.filterOptions.Q, this.audioContext.currentTime);
+      this.notes[midiNote].filterNode.frequency.setValueAtTime(
+        this.filterOptions.frequency,
+        this.audioContext.currentTime
+      );
+
+      this.notes[midiNote].ampEnv.retrigger(this.audioContext.currentTime, {
+        attackTime: this.ampEnvOptions.attackTime,
+        decayTime: this.ampEnvOptions.decayTime,
+        sustainLevel: this.ampEnvOptions.sustainLevel,
+        releaseTime: this.ampEnvOptions.releaseTime
+      });
+      this.notes[midiNote].filterEnv.retrigger(this.audioContext.currentTime, {
+        attackTime: this.filterEnvOptions.attackTime,
+        attackFinalLevel: this.filterOptions.frequency,
+        decayTime: this.filterEnvOptions.decayTime,
+        sustainLevel: this.filterEnvOptions.sustainLevel * this.filterOptions.frequency,
+        releaseTime: this.filterEnvOptions.releaseTime,
+        endValue: 60
+      });
     } else {
       this.notes[midiNote] = null;
       // let freq = 261.625565 * 2 ** ((midiNote - 60) / 12);
@@ -126,10 +147,10 @@ class Luna implements IInstrument {
       ampGainNode.gain.setValueAtTime(this.ampGainOptions.gain, this.audioContext.currentTime);
 
       const ampEnv = new Envelope(this.audioContext, {
-        attackTime: this.ampEnvOptions.attack,
-        decayTime: this.ampEnvOptions.decay,
-        sustainLevel: this.ampEnvOptions.sustain,
-        releaseTime: this.ampEnvOptions.release
+        attackTime: this.ampEnvOptions.attackTime,
+        decayTime: this.ampEnvOptions.decayTime,
+        sustainLevel: this.ampEnvOptions.sustainLevel,
+        releaseTime: this.ampEnvOptions.releaseTime
       });
       ampEnv.connect(ampGainNode.gain);
 
@@ -139,11 +160,11 @@ class Luna implements IInstrument {
       filterNode.frequency.setValueAtTime(this.filterOptions.frequency, this.audioContext.currentTime);
 
       const filterEnv = new Envelope(this.audioContext, {
-        attackTime: this.filterEnvOptions.attack,
+        attackTime: this.filterEnvOptions.attackTime,
         attackFinalLevel: this.filterOptions.frequency,
-        decayTime: this.filterEnvOptions.decay,
-        sustainLevel: this.filterEnvOptions.sustain * this.filterOptions.frequency,
-        releaseTime: this.filterEnvOptions.release,
+        decayTime: this.filterEnvOptions.decayTime,
+        sustainLevel: this.filterEnvOptions.sustainLevel * this.filterOptions.frequency,
+        releaseTime: this.filterEnvOptions.releaseTime,
         endValue: 60
       });
       filterEnv.connect(filterNode.frequency);

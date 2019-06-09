@@ -72,6 +72,9 @@ class Envelope {
         this.valueAtGateClose = this.settings.sustainLevel;
       }
 
+      // valueAtGateClose is sometimes 0 when many notes come in quickly
+      if (this.valueAtGateClose <= 0.0) this.valueAtGateClose = 0.0001;
+
       this.targetParam.cancelScheduledValues(gateClosedAt);
       this.targetParam.setValueAtTime(this.valueAtGateClose, gateClosedAt);
       this.targetParam.exponentialRampToValueAtTime(this.settings.endValue, this.endAt);
@@ -83,7 +86,7 @@ class Envelope {
     return this.endAt;
   }
 
-  retrigger(retriggerAt: number): void {
+  retrigger(retriggerAt: number, newSettings: IEnvelopeSettings): void {
     // these values should be calculated a bit into the future to account for the delay before we schedule them
     if (this.gateOpen) {
       if (retriggerAt < this.startDecayAt) {
@@ -98,14 +101,20 @@ class Envelope {
             (retriggerAt - this.startDecayAt) / this.settings.decayTime
           );
 
-        this.reschedule(retriggerAt, currentValue);
+        this.reschedule(retriggerAt, currentValue, newSettings);
       } else {
         console.log("retrigger in sustain phase");
-        this.reschedule(retriggerAt, this.settings.sustainLevel);
+        this.reschedule(retriggerAt, this.settings.sustainLevel, newSettings);
       }
     } else {
       if (retriggerAt > this.gateClosedAt && retriggerAt <= this.gateClosedAt + this.settings.releaseTime) {
         console.log("retrigger in release phase");
+
+        // console.log("valueAtGateClose: " + this.valueAtGateClose);
+        // console.log("endValue: " + this.settings.endValue);
+        // console.log("retriggerAt: " + retriggerAt);
+        // console.log("gateClosedAt: " + this.gateClosedAt);
+        // console.log("releaseTime: " + this.settings.releaseTime);
 
         const currentValue =
           this.valueAtGateClose *
@@ -114,7 +123,9 @@ class Envelope {
             (retriggerAt - this.gateClosedAt) / this.settings.releaseTime
           );
 
-        this.reschedule(retriggerAt, currentValue);
+        // console.log("currentValue: " + currentValue);
+
+        this.reschedule(retriggerAt, currentValue, newSettings);
 
         this.gateOpen = true;
         this.endAt = Infinity;
@@ -126,21 +137,23 @@ class Envelope {
     }
   }
 
-  private reschedule(retriggerAt: number, currentValue: number): void {
+  private reschedule(retriggerAt: number, currentValue: number, newSettings: IEnvelopeSettings): void {
     console.log("rescheduling");
-    console.log(currentValue);
 
     // this.targetParam.cancelAndHoldAtTime(retriggerAt);
     this.targetParam.cancelScheduledValues(retriggerAt);
     this.targetParam.setValueAtTime(currentValue, retriggerAt);
 
-    // compute would-have-been start time given current value and attackTime
+    this.settings = newSettings;
+    if (!newSettings.initialLevel) this.settings.initialLevel = 0;
+    if (!newSettings.attackFinalLevel) this.settings.attackFinalLevel = 1;
+    if (!newSettings.endValue) this.settings.endValue = 0.0001;
+
+    // compute would-have-been start time given current value and the new attackTime
     const attackWouldHaveStartedAt =
       retriggerAt -
       ((this.settings.attackTime * (currentValue - this.settings.initialLevel)) / this.settings.attackFinalLevel -
         this.settings.initialLevel);
-
-    // patch in new settings?
 
     this.startDecayAt = attackWouldHaveStartedAt + this.settings.attackTime;
     this.startSustainAt = this.startDecayAt + this.settings.decayTime;
@@ -168,4 +181,4 @@ interface IEnvelopeSettings {
   // velocityScaling: number;
 }
 
-export { Envelope };
+export { Envelope, IEnvelopeSettings };
