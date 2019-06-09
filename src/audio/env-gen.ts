@@ -2,7 +2,7 @@ import { IAudioContext, IAudioParam } from "standardized-audio-context";
 
 class Envelope {
   settings: IEnvelopeSettings = {
-    initialLevel: 0,
+    initialLevel: 0.0001,
     attackTime: 0,
     attackFinalLevel: 1,
     decayTime: 0,
@@ -71,9 +71,6 @@ class Envelope {
       } else {
         this.valueAtGateClose = this.settings.sustainLevel;
       }
-
-      // valueAtGateClose is sometimes 0 when many notes come in quickly
-      if (this.valueAtGateClose <= 0.0) this.valueAtGateClose = 0.0001;
 
       this.targetParam.cancelScheduledValues(gateClosedAt);
       this.targetParam.setValueAtTime(this.valueAtGateClose, gateClosedAt);
