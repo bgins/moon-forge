@@ -151,7 +151,7 @@ toInitModel flags =
 
         Err err ->
             Model
-                Triangle
+                Square
                 0.05
                 0.05
                 1

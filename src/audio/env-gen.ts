@@ -1,7 +1,7 @@
 import { IAudioContext, IAudioParam } from "standardized-audio-context";
 
 class Envelope {
-  settings: IEnvelopeSettings = {
+  settings: IEnvelopeOptions = {
     initialLevel: 0.0001,
     attackTime: 0,
     attackFinalLevel: 1,
@@ -20,7 +20,10 @@ class Envelope {
   valueAtGateClose: number;
   endAt: number;
 
-  constructor(audioContext: IAudioContext, settings: IEnvelopeSettings) {
+  /*
+   * Construct a new instance of Envelope
+   */
+  constructor(audioContext: IAudioContext, settings: IEnvelopeOptions) {
     this.audioContext = audioContext;
 
     this.settings.attackTime = settings.attackTime;
@@ -37,6 +40,9 @@ class Envelope {
     this.targetParam = targetParam;
   }
 
+  /*
+   * Start the envelope by scheduling attack, decay, and sustain phases.
+   */
   openGate(gateOpenAt: number): void {
     this.gateOpenAt = gateOpenAt;
     this.startDecayAt = gateOpenAt + this.settings.attackTime;
@@ -50,16 +56,23 @@ class Envelope {
     this.endAt = Infinity;
   }
 
+  /*
+   * Close the envelope by scheduling the release phase.
+   * We capture valueAtGateClose here because we may need it for a retrigger during the release phase.
+   * See §1.6.2 of the spec for the formulas used to compute valueAtGateClose.
+   * When available, cancelAndHoldAtTime may simplify some of this.
+   */
   closeGate(gateClosedAt: number): void {
     this.gateClosedAt = gateClosedAt;
     this.endAt = gateClosedAt + this.settings.releaseTime;
 
+    // valueAtGateClose should be calculated a bit into the future to account for the delay before we hold
+    // and ramp down, but this is not done here yet
     if (this.gateOpen) {
-      // these values should be calculated a bit into the future to account for the delay before we schedule them
       if (gateClosedAt < this.startDecayAt) {
         this.valueAtGateClose =
           this.settings.initialLevel +
-          (this.settings.attackFinalLevel - this.settings.initialLevel) * // use abs value?
+          (this.settings.attackFinalLevel - this.settings.initialLevel) *
             ((gateClosedAt - this.gateOpenAt) / this.settings.attackTime);
       } else if (gateClosedAt >= this.startDecayAt && gateClosedAt < this.startSustainAt) {
         this.valueAtGateClose =
@@ -72,6 +85,7 @@ class Envelope {
         this.valueAtGateClose = this.settings.sustainLevel;
       }
 
+      // this.targetParam.cancelAndHoldAtTime(gateClosedAt);
       this.targetParam.cancelScheduledValues(gateClosedAt);
       this.targetParam.setValueAtTime(this.valueAtGateClose, gateClosedAt);
       this.targetParam.exponentialRampToValueAtTime(this.settings.endValue, this.endAt);
@@ -79,12 +93,16 @@ class Envelope {
     }
   }
 
-  getEndTime(): number {
-    return this.endAt;
-  }
-
-  retrigger(retriggerAt: number, newSettings: IEnvelopeSettings): void {
-    // these values should be calculated a bit into the future to account for the delay before we schedule them
+  /*
+   * Retrigger the envelope.
+   * Calculate the currentValue for the current envelope phase.
+   * See §1.6.2 of the spec for the formulas used to compute currentValue.
+   * Retriggers after the envelope has completed probably do not happen often,
+   * but something better should happen in the case where they do.
+   */
+  retrigger(retriggerAt: number, newSettings: IEnvelopeOptions): void {
+    // currentValue should be calculated a bit into the future to account for the delay before we
+    // reschedule, but this is not done here yet
     if (this.gateOpen) {
       if (retriggerAt < this.startDecayAt) {
         console.log("retrigger in attack phase");
@@ -107,12 +125,6 @@ class Envelope {
       if (retriggerAt > this.gateClosedAt && retriggerAt <= this.gateClosedAt + this.settings.releaseTime) {
         console.log("retrigger in release phase");
 
-        // console.log("valueAtGateClose: " + this.valueAtGateClose);
-        // console.log("endValue: " + this.settings.endValue);
-        // console.log("retriggerAt: " + retriggerAt);
-        // console.log("gateClosedAt: " + this.gateClosedAt);
-        // console.log("releaseTime: " + this.settings.releaseTime);
-
         const currentValue =
           this.valueAtGateClose *
           Math.pow(
@@ -120,21 +132,21 @@ class Envelope {
             (retriggerAt - this.gateClosedAt) / this.settings.releaseTime
           );
 
-        // console.log("currentValue: " + currentValue);
-
         this.reschedule(retriggerAt, currentValue, newSettings);
-
         this.gateOpen = true;
         this.endAt = Infinity;
       } else {
-        // this case is not likely to be reached
         console.log("retrigger after envelope completed");
-        // this.openGate(retriggerAt);
       }
     }
   }
 
-  private reschedule(retriggerAt: number, currentValue: number, newSettings: IEnvelopeSettings): void {
+  /*
+   * Reschedule after a retrigger.
+   * This and retrigger may be simpler when cancelAndHoldAtTime is available.
+   * We calculate the time when the attack would have started to get the right ramps.
+   */
+  private reschedule(retriggerAt: number, currentValue: number, newSettings: IEnvelopeOptions): void {
     console.log("rescheduling");
 
     // this.targetParam.cancelAndHoldAtTime(retriggerAt);
@@ -142,27 +154,34 @@ class Envelope {
     this.targetParam.setValueAtTime(currentValue, retriggerAt);
 
     this.settings = newSettings;
-    if (!newSettings.initialLevel) this.settings.initialLevel = 0;
+    if (!newSettings.initialLevel) this.settings.initialLevel = 0.0001;
     if (!newSettings.attackFinalLevel) this.settings.attackFinalLevel = 1;
     if (!newSettings.endValue) this.settings.endValue = 0.0001;
 
-    // compute would-have-been start time given current value and the new attackTime
+    // compute would-have-been start time given the current value and the new attack time
     const attackWouldHaveStartedAt =
       retriggerAt -
       ((this.settings.attackTime * (currentValue - this.settings.initialLevel)) / this.settings.attackFinalLevel -
         this.settings.initialLevel);
 
+    // reschedule with updated settings
     this.startDecayAt = attackWouldHaveStartedAt + this.settings.attackTime;
     this.startSustainAt = this.startDecayAt + this.settings.decayTime;
-
     this.targetParam.linearRampToValueAtTime(this.settings.attackFinalLevel, this.startDecayAt);
     this.targetParam.exponentialRampToValueAtTime(this.settings.sustainLevel, this.startSustainAt);
 
     this.gateOpenAt = attackWouldHaveStartedAt;
   }
+
+  getEndTime(): number {
+    return this.endAt;
+  }
 }
 
-interface IEnvelopeSettings {
+/*
+ * More options may be added in the future.
+ */
+interface IEnvelopeOptions {
   initialLevel?: number;
   // delayTime: number;
   attackTime: number;
@@ -178,4 +197,4 @@ interface IEnvelopeSettings {
   // velocityScaling: number;
 }
 
-export { Envelope, IEnvelopeSettings };
+export { Envelope, IEnvelopeOptions };

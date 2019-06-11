@@ -1,4 +1,4 @@
-import { Envelope, IEnvelopeSettings } from "./env-gen";
+import { Envelope, IEnvelopeOptions } from "./env-gen";
 import {
   AudioContext,
   IAudioContext,
@@ -21,15 +21,17 @@ class Luna implements IInstrument {
   notes: INote[] = [];
   oscillatorOptions: IOscillatorOptions;
   ampGainOptions: IGainOptions;
-  ampEnvOptions: IEnvelopeSettings;
+  ampEnvOptions: IEnvelopeOptions;
   filterOptions: IBiquadFilterOptions;
-  filterEnvOptions: IEnvelopeSettings;
+  filterEnvOptions: IEnvelopeOptions;
   masterGainOptions: IGainOptions;
   edo: number;
   baseFrequency: number;
   baseMidiNote: number;
 
-  // give flags a type when the options are stable
+  /*
+   * Construct a new instance of Luna from flags and defaults
+   */
   constructor(flags: any) {
     this.oscillatorOptions = {
       type: flags.oscillator,
@@ -79,23 +81,28 @@ class Luna implements IInstrument {
 
     this.audioContext = new AudioContext();
 
+    // all notes play through the master gain
+    // the user controls a range from 0 to 1, but they actually get less
     this.masterGainNode = this.audioContext.createGain();
-    this.masterGainNode.gain.setValueAtTime(this.masterGainOptions.gain / 5, this.audioContext.currentTime);
+    this.masterGainNode.gain.setValueAtTime(this.masterGainOptions.gain / 10, this.audioContext.currentTime);
 
+    // roll of low frequencies that might be dangerous
     this.bottomFilter = this.audioContext.createBiquadFilter();
     this.bottomFilter.type = "highpass";
     this.bottomFilter.frequency.setValueAtTime(60, this.audioContext.currentTime);
 
+    // roll off things that cannot be heard
     this.topFilter = this.audioContext.createBiquadFilter();
     this.topFilter.type = "lowpass";
     this.topFilter.frequency.setValueAtTime(18000, this.audioContext.currentTime);
 
+    // limit fast transients that would otherwise clip
     this.limiter = this.audioContext.createDynamicsCompressor();
     this.limiter.ratio.setValueAtTime(20, this.audioContext.currentTime);
     this.limiter.knee.setValueAtTime(0.0, this.audioContext.currentTime);
     this.limiter.threshold.setValueAtTime(0.0, this.audioContext.currentTime);
-    this.limiter.attack.setValueAtTime(0.005, this.audioContext.currentTime);
-    this.limiter.release.setValueAtTime(0.1, this.audioContext.currentTime);
+    this.limiter.attack.setValueAtTime(0.001, this.audioContext.currentTime);
+    this.limiter.release.setValueAtTime(0.2, this.audioContext.currentTime);
 
     this.masterGainNode.connect(this.topFilter);
     this.topFilter.connect(this.bottomFilter);
@@ -104,13 +111,19 @@ class Luna implements IInstrument {
   }
 
   updateMasterGain(gain: number): void {
-    this.masterGainNode.gain.setValueAtTime(gain / 5, this.audioContext.currentTime);
+    this.masterGainNode.gain.setValueAtTime(gain / 10, this.audioContext.currentTime);
   }
 
+  /*
+   * Play a new note or retrigger a note that is still playing.
+   * Retriggers occur based on the end time provided by the notes' amplitude envelope.
+   */
   playNote(midiNote: number): void {
     if (this.notes[midiNote] && this.audioContext.currentTime < this.notes[midiNote].ampEnv.getEndTime()) {
+      // reschedule the stop for a long time out
       this.notes[midiNote].oscillator.stop(this.audioContext.currentTime + 1000);
 
+      // update settings to take effect on retrigger
       this.notes[midiNote].oscillator.type = this.oscillatorOptions.type;
       this.notes[midiNote].filterNode.type = this.filterOptions.type;
       this.notes[midiNote].filterNode.Q.setValueAtTime(this.filterOptions.Q, this.audioContext.currentTime);
@@ -134,12 +147,15 @@ class Luna implements IInstrument {
         endValue: 60
       });
     } else {
+      // clear out old note entry if it exists
       this.notes[midiNote] = null;
-      // let freq = 261.625565 * 2 ** ((midiNote - 60) / 12);
-      let freq = this.baseFrequency * 2 ** ((midiNote - this.baseMidiNote) / this.edo);
+
+      // conventionally: [freq = 261.625565 * 2 ** ((midiNote - 60) / 12);]
+      // but we allow for arbitrary divisions of the octave here
+      const freq = this.baseFrequency * 2 ** ((midiNote - this.baseMidiNote) / this.edo);
       console.log(freq);
 
-      let oscillator = this.audioContext.createOscillator();
+      const oscillator = this.audioContext.createOscillator();
       oscillator.type = this.oscillatorOptions.type;
       oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
 
@@ -189,6 +205,11 @@ class Luna implements IInstrument {
     }
   }
 
+  /*
+   * Stop a note.
+   * The note is not cleared out here because its release time still needs to play out
+   * and we may receive a retrigger from the user.
+   */
   stopNote(midiNote: number): void {
     const oscillator = this.notes[midiNote].oscillator;
     const ampEnv = this.notes[midiNote].ampEnv;
