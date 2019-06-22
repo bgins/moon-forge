@@ -13,16 +13,16 @@ You can try the most recent stable build at: https://brianginsburg.com/moon-forg
 
 ## Luna
 
-`Luna` is a subtractive synth with one oscillator, amplitude envelope, one
-filter, filter envelope, and master gain. `Luna` can be played with your
+Luna is a subtractive synth with one oscillator, amplitude envelope, one
+filter, filter envelope, and master gain. Luna can be played with your
 computer keyboard or a MIDI controller.
 
-`Luna` can be retuned to any equal division of the octave by selecting
-`Custom Tuning` and entering the number of divisions, base frequency, and the Midi note
+Luna can be retuned to any equal division of the octave by selecting
+"Custom Tuning" and entering the number of divisions, base frequency, and the Midi note
 at the base frequency.
 
-`Luna` may appear a bit small on the big empty `Moon Forge` canvas, but this is
-by design because `Luna` will eventually be a small part of a larger application.
+Luna may appear a bit small on the big empty Moon Forge canvas, but this is
+by design because Luna will eventually be a small part of a larger application.
 Zoom in your browser to get a closer look.
 
 ## Setup
