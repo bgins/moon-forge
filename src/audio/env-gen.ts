@@ -1,4 +1,4 @@
-import { IAudioContext, IAudioParam } from "standardized-audio-context";
+import { IAudioContext, IAudioParam } from 'standardized-audio-context';
 
 class Envelope {
   settings: IEnvelopeOptions = {
@@ -105,9 +105,9 @@ class Envelope {
     // reschedule, but this is not done here yet
     if (this.gateOpen) {
       if (retriggerAt < this.startDecayAt) {
-        console.log("retrigger in attack phase");
+        console.log('retrigger in attack phase');
       } else if (retriggerAt >= this.startDecayAt && retriggerAt < this.startSustainAt) {
-        console.log("retrigger in decay phase");
+        console.log('retrigger in decay phase');
 
         const currentValue =
           this.settings.attackFinalLevel *
@@ -118,12 +118,12 @@ class Envelope {
 
         this.reschedule(retriggerAt, currentValue, newSettings);
       } else {
-        console.log("retrigger in sustain phase");
+        console.log('retrigger in sustain phase');
         this.reschedule(retriggerAt, this.settings.sustainLevel, newSettings);
       }
     } else {
       if (retriggerAt > this.gateClosedAt && retriggerAt <= this.gateClosedAt + this.settings.releaseTime) {
-        console.log("retrigger in release phase");
+        console.log('retrigger in release phase');
 
         const currentValue =
           this.valueAtGateClose *
@@ -136,7 +136,7 @@ class Envelope {
         this.gateOpen = true;
         this.endAt = Infinity;
       } else {
-        console.log("retrigger after envelope completed");
+        console.log('retrigger after envelope completed');
       }
     }
   }
@@ -147,7 +147,7 @@ class Envelope {
    * We calculate the time when the attack would have started to get the right ramps.
    */
   private reschedule(retriggerAt: number, currentValue: number, newSettings: IEnvelopeOptions): void {
-    console.log("rescheduling");
+    console.log('rescheduling');
 
     // this.targetParam.cancelAndHoldAtTime(retriggerAt);
     this.targetParam.cancelScheduledValues(retriggerAt);

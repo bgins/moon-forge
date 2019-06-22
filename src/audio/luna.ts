@@ -1,4 +1,4 @@
-import { Envelope, IEnvelopeOptions } from "./env-gen";
+import { Envelope, IEnvelopeOptions } from './env-gen';
 import {
   AudioContext,
   IAudioContext,
@@ -8,9 +8,9 @@ import {
   IGainOptions,
   IBiquadFilterNode,
   IDynamicsCompressorNode
-} from "standardized-audio-context";
+} from 'standardized-audio-context';
 
-import { IInstrument, INote } from "./audio";
+import { IInstrument, INote } from './audio';
 
 class Luna implements IInstrument {
   audioContext: IAudioContext;
@@ -38,14 +38,14 @@ class Luna implements IInstrument {
       detune: 0,
       frequency: 261.625,
       channelCount: 2,
-      channelCountMode: "max",
-      channelInterpretation: "speakers"
+      channelCountMode: 'max',
+      channelInterpretation: 'speakers'
     };
     this.ampGainOptions = {
       gain: 0.001,
       channelCount: 2,
-      channelCountMode: "max",
-      channelInterpretation: "speakers"
+      channelCountMode: 'max',
+      channelInterpretation: 'speakers'
     };
     this.ampEnvOptions = {
       attackTime: flags.ampEnvAttack,
@@ -60,8 +60,8 @@ class Luna implements IInstrument {
       detune: 0,
       gain: 0,
       channelCount: 2,
-      channelCountMode: "max",
-      channelInterpretation: "speakers"
+      channelCountMode: 'max',
+      channelInterpretation: 'speakers'
     };
     this.filterEnvOptions = {
       attackTime: flags.filterEnvAttack,
@@ -72,8 +72,8 @@ class Luna implements IInstrument {
     this.masterGainOptions = {
       gain: flags.gain,
       channelCount: 2,
-      channelCountMode: "max",
-      channelInterpretation: "speakers"
+      channelCountMode: 'max',
+      channelInterpretation: 'speakers'
     };
     this.edo = +flags.temperamentInput;
     this.baseFrequency = +flags.baseFrequencyInput;
@@ -88,12 +88,12 @@ class Luna implements IInstrument {
 
     // roll of low frequencies that might be dangerous
     this.bottomFilter = this.audioContext.createBiquadFilter();
-    this.bottomFilter.type = "highpass";
+    this.bottomFilter.type = 'highpass';
     this.bottomFilter.frequency.setValueAtTime(60, this.audioContext.currentTime);
 
     // roll off things that cannot be heard
     this.topFilter = this.audioContext.createBiquadFilter();
-    this.topFilter.type = "lowpass";
+    this.topFilter.type = 'lowpass';
     this.topFilter.frequency.setValueAtTime(18000, this.audioContext.currentTime);
 
     // limit fast transients that would otherwise clip
@@ -120,8 +120,8 @@ class Luna implements IInstrument {
    */
   playNote(midiNote: number): void {
     if (this.notes[midiNote] && this.audioContext.currentTime < this.notes[midiNote].ampEnv.getEndTime()) {
-      // reschedule the stop for a long time out
-      this.notes[midiNote].oscillator.stop(this.audioContext.currentTime + 1000);
+      // reschedule the stop far into the future, longer than any note can be held
+      this.notes[midiNote].oscillator.stop(Number.MAX_VALUE);
 
       // update settings to take effect on retrigger
       this.notes[midiNote].oscillator.type = this.oscillatorOptions.type;

@@ -1,15 +1,15 @@
-import { Elm } from "./Main.elm";
-import { Keyboard } from "./controllers/keyboard";
-import { Luna } from "./audio/luna";
-import { Midi } from "./controllers/midi";
+import { Elm } from './Main.elm';
+import { Keyboard } from './controllers/keyboard';
+import { Luna } from './audio/luna';
+import { Midi } from './controllers/midi';
 
 const flags = {
-  oscillator: "square",
+  oscillator: 'square',
   ampEnvAttack: 0.05,
   ampEnvDecay: 0.05,
   ampEnvSustain: 1,
   ampEnvRelease: 0.5,
-  filter: "lowpass",
+  filter: 'lowpass',
   filterFreq: 2000,
   filterQ: 2,
   filterEnvAttack: 0.05,
@@ -20,12 +20,12 @@ const flags = {
   keyboardEnabled: true,
   midiEnabled: false,
   midiDevices: [],
-  selectedMidiDevice: "",
+  selectedMidiDevice: '',
   tuningPanelVisible: false,
-  temperamentInput: "12",
-  baseFrequencyInput: "261.625",
-  baseMidiNoteInput: "60",
-  assetsPath: "./assets/"
+  temperamentInput: '12',
+  baseFrequencyInput: '261.625',
+  baseMidiNoteInput: '60',
+  assetsPath: './assets/'
 };
 
 /*
@@ -33,7 +33,7 @@ const flags = {
  * Create computer keyboard and midi controls, and set keyboard as the default.
  */
 const app = Elm.Main.init({
-  node: document.querySelector("main"),
+  node: document.querySelector('main'),
   flags: flags
 });
 const luna = new Luna(flags);
@@ -47,56 +47,56 @@ keyboard.enable(luna);
 app.ports.updateAudioParam.subscribe(data => {
   console.log(JSON.stringify(data));
   switch (data.name) {
-    case "oscillatorType":
+    case 'oscillatorType':
       luna.oscillatorOptions.type = data.val;
       break;
-    case "ampEnvAttack":
+    case 'ampEnvAttack':
       luna.ampEnvOptions.attackTime = data.val;
       break;
-    case "ampEnvDecay":
+    case 'ampEnvDecay':
       luna.ampEnvOptions.decayTime = data.val;
       break;
-    case "ampEnvSustain":
+    case 'ampEnvSustain':
       luna.ampEnvOptions.sustainLevel = data.val;
       break;
-    case "ampEnvRelease":
+    case 'ampEnvRelease':
       luna.ampEnvOptions.releaseTime = data.val;
       break;
-    case "filterType":
+    case 'filterType':
       luna.filterOptions.type = data.val;
       break;
-    case "filterFreq":
+    case 'filterFreq':
       luna.filterOptions.frequency = data.val;
       break;
-    case "filterQ":
+    case 'filterQ':
       luna.filterOptions.Q = data.val;
       break;
-    case "filterEnvAttack":
+    case 'filterEnvAttack':
       luna.filterEnvOptions.attackTime = data.val;
       break;
-    case "filterEnvDecay":
+    case 'filterEnvDecay':
       luna.filterEnvOptions.decayTime = data.val;
       break;
-    case "filterEnvSustain":
+    case 'filterEnvSustain':
       luna.filterEnvOptions.sustainLevel = data.val;
       break;
-    case "filterEnvRelease":
+    case 'filterEnvRelease':
       luna.filterEnvOptions.releaseTime = data.val;
       break;
-    case "masterGain":
+    case 'masterGain':
       luna.updateMasterGain(data.val);
       break;
-    case "edo":
+    case 'edo':
       luna.edo = data.val;
       break;
-    case "baseFrequency":
+    case 'baseFrequency':
       luna.baseFrequency = data.val;
       break;
-    case "baseMidiNote":
+    case 'baseMidiNote':
       luna.baseMidiNote = data.val;
       break;
     default:
-      console.log("unknown parameter adjustment");
+      console.log('unknown parameter adjustment');
   }
 });
 

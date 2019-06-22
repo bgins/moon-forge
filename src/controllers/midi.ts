@@ -1,6 +1,6 @@
-import webmidi, { Input } from "webmidi";
+import webmidi, { Input } from 'webmidi';
 
-import { IInstrument } from "../audio/audio";
+import { IInstrument } from '../audio/audio';
 
 class Midi {
   input: Input;
@@ -10,7 +10,7 @@ class Midi {
   constructor() {
     webmidi.enable(err => {
       if (!err) {
-        console.log("WebMidi enabled!");
+        console.log('WebMidi enabled!');
 
         this.inputs = webmidi.inputs;
 
@@ -18,16 +18,16 @@ class Midi {
           this.input = webmidi.inputs[0];
           this.addListeners(this.input);
         } else {
-          console.log("No Midi devices available.");
+          console.log('No Midi devices available.');
         }
       } else {
-        console.log("WebMidi could not be enabled.", err);
+        console.log('WebMidi could not be enabled.', err);
       }
     });
   }
 
   getSelectedInputName(): string {
-    return this.input.name
+    return this.input.name;
   }
 
   getInputNames(): string[] {
@@ -42,36 +42,36 @@ class Midi {
         this.input = newInput;
         this.addListeners(this.input);
       } else {
-        console.log("Device not found.");
+        console.log('Device not found.');
       }
     }
   }
 
   addListeners(input: Input): void {
-    input.addListener("noteon", "all", event => {
+    input.addListener('noteon', 'all', event => {
       this.instrument.playNote(event.note.number);
-      console.log("noteon: " + event.note.number);
+      console.log('midi note on: ' + event.note.number);
     });
 
-    input.addListener("noteoff", "all", event => {
+    input.addListener('noteoff', 'all', event => {
       this.instrument.stopNote(event.note.number);
-      console.log("noteoff: " + event.note.number);
+      console.log('midi note off: ' + event.note.number);
     });
 
-    input.addListener("pitchbend", "all", event => {
-      console.log("pitchbend: ", event);
+    input.addListener('pitchbend', 'all', event => {
+      console.log('pitchbend: ', event);
     });
 
-    input.addListener("controlchange", "all", event => {
-      console.log("controlchange: ", event);
+    input.addListener('controlchange', 'all', event => {
+      console.log('controlchange: ', event);
     });
   }
 
   removeListeners(input: Input): void {
-    input.removeListener("noteon");
-    input.removeListener("noteoff");
-    input.removeListener("pitchbend");
-    input.removeListener("controlchange");
+    input.removeListener('noteon');
+    input.removeListener('noteoff');
+    input.removeListener('pitchbend');
+    input.removeListener('controlchange');
   }
 
   enable(instrument: IInstrument) {
