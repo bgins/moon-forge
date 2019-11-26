@@ -9,7 +9,7 @@ effects.
 
 Moon Forge works in Chrome and Chromium. Testing and fixes for Firefox are in progress.
 
-You can try the most recent stable build at: https://brianginsburg.com/moon-forge/
+You can try the most recent stable build at: [moon-forge.brianginsburg.com](https://moon-forge.brianginsburg.com)
 
 ## Luna
 
