@@ -14,10 +14,10 @@ import { IInstrument, INote } from './audio';
 
 class Luna implements IInstrument {
   audioContext: IAudioContext;
-  masterGainNode: IGainNode;
-  bottomFilter: IBiquadFilterNode;
-  topFilter: IBiquadFilterNode;
-  limiter: IDynamicsCompressorNode;
+  masterGainNode: IGainNode<IAudioContext>;
+  bottomFilter: IBiquadFilterNode<IAudioContext>;
+  topFilter: IBiquadFilterNode<IAudioContext>;
+  limiter: IDynamicsCompressorNode<IAudioContext>;
   notes: INote[] = [];
   oscillatorOptions: IOscillatorOptions;
   ampGainOptions: IGainOptions;
@@ -121,7 +121,8 @@ class Luna implements IInstrument {
   playNote(midiNote: number): void {
     if (this.notes[midiNote] && this.audioContext.currentTime < this.notes[midiNote].ampEnv.getEndTime()) {
       // reschedule the stop far into the future, longer than any note can be held
-      this.notes[midiNote].oscillator.stop(Number.MAX_VALUE);
+      // this.notes[midiNote].oscillator.stop(Number.MAX_VALUE);
+      this.notes[midiNote].oscillator.stop(this.audioContext.currentTime + 10000);
 
       // update settings to take effect on retrigger
       this.notes[midiNote].oscillator.type = this.oscillatorOptions.type;

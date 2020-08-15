@@ -1,4 +1,4 @@
-import { IOscillatorNode, IGainNode, IBiquadFilterNode } from 'standardized-audio-context';
+import { IOscillatorNode, IGainNode, IBiquadFilterNode, IAudioContext } from 'standardized-audio-context';
 import { Envelope } from './env-gen';
 
 interface IInstrument {
@@ -7,10 +7,10 @@ interface IInstrument {
 }
 
 interface INote {
-  oscillator: IOscillatorNode;
-  ampGainNode: IGainNode;
+  oscillator: IOscillatorNode<IAudioContext>;
+  ampGainNode: IGainNode<IAudioContext>;
   ampEnv: Envelope;
-  filterNode: IBiquadFilterNode;
+  filterNode: IBiquadFilterNode<IAudioContext>;
   filterEnv: Envelope;
 }
 
