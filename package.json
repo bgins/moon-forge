@@ -10,12 +10,12 @@
   "license": "",
   "devDependencies": {
     "elm-hot": "^1.0.1",
-    "node-elm-compiler": "^5.0.3",
+    "node-elm-compiler": "^5.0.4",
     "typescript": "^3.4.3"
   },
   "dependencies": {
     "mousetrap-ts": "^1.0.0",
-    "standardized-audio-context": "^21.1.1",
+    "standardized-audio-context": "^24.1.25",
     "webmidi": "^2.3.3"
   }
 }
