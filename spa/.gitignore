@@ -1,0 +1,15 @@
+# node
+node_modules
+
+# elm
+elm-stuff
+
+# elm-spa
+src/Spa/Generated
+
+# parcel
+dist
+.cache
+
+# macOS weird stuff
+.DS_Store
