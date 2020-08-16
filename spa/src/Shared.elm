@@ -10,9 +10,13 @@ module Shared exposing
 
 import Browser.Navigation exposing (Key)
 import Element exposing (..)
+import Element.Background as Background
+import Element.Border as Border
 import Element.Font as Font
 import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
+import UI.Colors as Colors
+import UI.Fonts as Fonts
 import Url exposing (Url)
 
 
@@ -68,12 +72,27 @@ view :
 view { page, toMsg } model =
     { title = page.title
     , body =
-        [ column [ padding 20, spacing 20, height fill ]
-            [ row [ spacing 20 ]
-                [ link [ Font.color (rgb 0 0.25 0.5), Font.underline ] { url = Route.toString Route.Top, label = text "Homepage" }
-                , link [ Font.color (rgb 0 0.25 0.5), Font.underline ] { url = Route.toString Route.NotFound, label = text "Not found" }
+        [ column
+            [ spacing 20
+            , height fill
+            , width fill
+            , Background.color Colors.darkGrey
+            , Font.color (rgb 1 1 1)
+            ]
+            [ row
+                [ width fill
+                , paddingEach { bottom = 10, left = 20, right = 20, top = 20 }
+                , Border.widthEach { bottom = 1, left = 0, right = 0, top = 0 }
+                , Border.color Colors.darkestGrey
                 ]
-            , column [ height fill ] page.body
+                [ column
+                    [ alignLeft ]
+                    [ link [ Font.family Fonts.cinzel, Font.size 36 ] { url = Route.toString Route.Top, label = text "Moon Forge" } ]
+                , row
+                    [ alignRight, spacing 20 ]
+                    [ link [ Font.family Fonts.quattrocento ] { url = Route.toString Route.NotFound, label = text "Not found" } ]
+                ]
+            , column [ height fill, paddingXY 20 0 ] page.body
             ]
         ]
     }

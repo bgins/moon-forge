@@ -1,4 +1,4 @@
-module UI.Colors exposing (darkGrey, lightGrey, nearBlack, orange, purple)
+module UI.Colors exposing (darkGrey, darkestGrey, lightGrey, orange, purple)
 
 import Element exposing (Color, rgb)
 
@@ -8,8 +8,8 @@ darkGrey =
     rgb 0.16 0.16 0.16
 
 
-nearBlack : Color
-nearBlack =
+darkestGrey : Color
+darkestGrey =
     rgb 0.11 0.12 0.14
 
 
