@@ -23,10 +23,6 @@ type alias Label =
     String
 
 
-type alias Path =
-    String
-
-
 
 -- BUTTONS
 
@@ -58,8 +54,8 @@ buttonOption toButton toString option =
     Input.optionWith option <| toButton <| toString option
 
 
-verticalSvgButton : Path -> Label -> (Input.OptionState -> Element msg)
-verticalSvgButton assetsPath label =
+verticalSvgButton : Label -> (Input.OptionState -> Element msg)
+verticalSvgButton label =
     \optionState ->
         row
             [ paddingXY 3 3
@@ -73,7 +69,7 @@ verticalSvgButton assetsPath label =
                     Border.color (rgb 0.75 0.75 0.75)
             ]
         <|
-            [ image [] { src = assetsPath ++ label ++ ".svg", description = label } ]
+            [ image [] { src = "../public/images/" ++ label ++ ".svg", description = label } ]
 
 
 
@@ -149,7 +145,7 @@ sliderThumb =
         , height (px 6)
         , Border.width 1
         , Border.color Colors.lightGrey
-        , Background.color Colors.nearBlack
+        , Background.color Colors.darkestGrey
         , Border.rounded 2
         ]
 

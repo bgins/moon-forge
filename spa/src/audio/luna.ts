@@ -33,6 +33,7 @@ class Luna implements IInstrument {
    * Construct a new instance of Luna from flags and defaults
    */
   constructor(flags: any) {
+    console.log(flags);
     this.oscillatorOptions = {
       type: flags.oscillator,
       detune: 0,
@@ -75,9 +76,9 @@ class Luna implements IInstrument {
       channelCountMode: 'max',
       channelInterpretation: 'speakers'
     };
-    this.edo = +flags.temperamentInput;
-    this.baseFrequency = +flags.baseFrequencyInput;
-    this.baseMidiNote = +flags.baseMidiNoteInput;
+    this.edo = flags.temperament;
+    this.baseFrequency = flags.baseFrequency;
+    this.baseMidiNote = flags.baseMidiNote;
 
     this.audioContext = new AudioContext();
 
@@ -108,6 +109,61 @@ class Luna implements IInstrument {
     this.topFilter.connect(this.bottomFilter);
     this.bottomFilter.connect(this.limiter);
     this.limiter.connect(this.audioContext.destination);
+  }
+
+  updateAudioParam(param: any): void {
+    switch (param.name) {
+      case 'oscillatorType':
+        this.oscillatorOptions.type = param.val;
+        break;
+      case 'ampEnvAttack':
+        this.ampEnvOptions.attackTime = param.val;
+        break;
+      case 'ampEnvDecay':
+        this.ampEnvOptions.decayTime = param.val;
+        break;
+      case 'ampEnvSustain':
+        this.ampEnvOptions.sustainLevel = param.val;
+        break;
+      case 'ampEnvRelease':
+        this.ampEnvOptions.releaseTime = param.val;
+        break;
+      case 'filterType':
+        this.filterOptions.type = param.val;
+        break;
+      case 'filterFreq':
+        this.filterOptions.frequency = param.val;
+        break;
+      case 'filterQ':
+        this.filterOptions.Q = param.val;
+        break;
+      case 'filterEnvAttack':
+        this.filterEnvOptions.attackTime = param.val;
+        break;
+      case 'filterEnvDecay':
+        this.filterEnvOptions.decayTime = param.val;
+        break;
+      case 'filterEnvSustain':
+        this.filterEnvOptions.sustainLevel = param.val;
+        break;
+      case 'filterEnvRelease':
+        this.filterEnvOptions.releaseTime = param.val;
+        break;
+      case 'masterGain':
+        this.updateMasterGain(param.val);
+        break;
+      case 'edo':
+        this.edo = param.val;
+        break;
+      case 'baseFrequency':
+        this.baseFrequency = param.val;
+        break;
+      case 'baseMidiNote':
+        this.baseMidiNote = param.val;
+        break;
+      default:
+        console.log('unknown parameter adjustment');
+    }
   }
 
   updateMasterGain(gain: number): void {

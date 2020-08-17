@@ -90,9 +90,9 @@ view { page, toMsg } model =
                     [ link [ Font.family Fonts.cinzel, Font.size 36 ] { url = Route.toString Route.Top, label = text "Moon Forge" } ]
                 , row
                     [ alignRight, spacing 20 ]
-                    [ link [ Font.family Fonts.quattrocento ] { url = Route.toString Route.NotFound, label = text "Not found" } ]
+                    [ link [ Font.family Fonts.quattrocento ] { url = Route.toString Route.Luna, label = text "Luna" } ]
                 ]
-            , column [ height fill, paddingXY 20 0 ] page.body
+            , column [ height fill, width fill, paddingXY 20 0 ] page.body
             ]
         ]
     }
