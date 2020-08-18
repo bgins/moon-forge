@@ -1,5 +1,13 @@
-port module Ports exposing (adjustAudioParam, initializeInstrument)
+port module Ports exposing
+    ( adjustAudioParam
+    , enableKeyboard
+    , getMidiDevices
+    , initializeInstrument
+    , midiDevicesChanged
+    , setMidiDevice
+    )
 
+import Controller exposing (Devices, devicesDecoder)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode exposing (Value)
@@ -69,30 +77,17 @@ port getMidiDevices : () -> Cmd msg
 port setMidiDevice : String -> Cmd msg
 
 
-port onMidiDevicesRequest : (Encode.Value -> msg) -> Sub msg
+port onMidiDevices : (Encode.Value -> msg) -> Sub msg
 
 
-updateMidiDevices : (MidiDevicesPortMessage -> msg) -> Sub msg
-updateMidiDevices toMsg =
-    onMidiDevicesRequest <|
+midiDevicesChanged : (Maybe Devices -> msg) -> Sub msg
+midiDevicesChanged toMsg =
+    onMidiDevices <|
         \value ->
             toMsg <|
-                case Decode.decodeValue decodeMidiDevices value of
-                    Ok midiDevicesPortMessage ->
-                        midiDevicesPortMessage
+                case Decode.decodeValue devicesDecoder value of
+                    Ok devices ->
+                        Just devices
 
                     Err err ->
-                        MidiDevicesPortMessage [] ""
-
-
-type alias MidiDevicesPortMessage =
-    { midiDevices : List String
-    , selectedMidiDevice : String
-    }
-
-
-decodeMidiDevices : Decode.Decoder MidiDevicesPortMessage
-decodeMidiDevices =
-    Decode.succeed MidiDevicesPortMessage
-        |> required "midiDevices" (Decode.list Decode.string)
-        |> required "selectedMidiDevice" Decode.string
+                        Nothing

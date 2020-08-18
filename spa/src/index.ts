@@ -13,6 +13,7 @@ const app = Elm.Main.init({
 });
 const keyboard = new Keyboard();
 const midi = new Midi();
+const instrument = null;
 
 /* PATCH */
 
@@ -20,11 +21,9 @@ app.ports.initializeInstrument.subscribe(patch => {
   console.log(patch);
   switch (patch.instrument) {
     case 'luna':
-      const luna = new Luna(patch.settings);
-      keyboard.enable(luna);
-      app.ports.updateAudioParam.subscribe(param => {
-        luna.updateAudioParam(param);
-      });
+      // const luna = new Luna(patch.settings);
+      this.instrument = new Luna(patch.settings);
+      keyboard.enable(this.instrument);
       break;
 
     default:
@@ -32,15 +31,19 @@ app.ports.initializeInstrument.subscribe(patch => {
   }
 });
 
+app.ports.updateAudioParam.subscribe(param => {
+  this.instrument.updateAudioParam(param);
+});
+
 /* CONTROLS */
 
 /*
  * Enable and disable computer keyboard controls from the user interface.
  */
-// app.ports.enableKeyboard.subscribe(() => {
-//   keyboard.enable(luna);
-//   midi.disable();
-// });
+app.ports.enableKeyboard.subscribe(() => {
+  keyboard.enable(this.instrument);
+  midi.disable();
+});
 
 // app.ports.disableKeyboard.subscribe(() => {
 //   keyboard.disable();
@@ -51,22 +54,22 @@ app.ports.initializeInstrument.subscribe(patch => {
  * getMidiDevices enables midi and sends a list of available devices to the
  * user interface.
  */
-// app.ports.getMidiDevices.subscribe(() => {
-//   console.log(midi.getInputNames());
-//   console.log(midi.getSelectedInputName());
-//   midi.enable(luna);
-//   keyboard.disable();
-//   app.ports.onMidiDevicesRequest.send({
-//     midiDevices: midi.getInputNames(),
-//     selectedMidiDevice: midi.getSelectedInputName()
-//   });
-// });
+app.ports.getMidiDevices.subscribe(() => {
+  console.log(midi.getInputNames());
+  midi.enable(this.instrument);
+  keyboard.disable();
+  app.ports.onMidiDevices.send({
+    // selected: null,
+    selected: midi.getSelectedInputName(),
+    available: midi.getInputNames()
+  });
+});
 
 /*
  * Select a midi device from the user interface.
  */
-// app.ports.setMidiDevice.subscribe(data => {
-//   console.log(JSON.stringify(data));
-//   midi.setInput(data);
-// })
+app.ports.setMidiDevice.subscribe(device => {
+  console.log(JSON.stringify(device));
+  midi.setInput(device);
+})
 

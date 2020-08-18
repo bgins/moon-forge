@@ -1,6 +1,8 @@
 module Pages.Luna exposing (Model, Msg, Params, page)
 
 import Components.Instrument as Instrument
+import Components.Instrument.Settings as InstrumentSettings
+import Controller exposing (Controller(..), Devices)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -66,6 +68,7 @@ type alias Model =
     , temperament : Int
     , baseFrequency : Float
     , baseMidiNote : Float
+    , controller : Controller
     }
 
 
@@ -108,6 +111,7 @@ init shared { params } =
         initPatch.temperament
         initPatch.baseFrequency
         initPatch.baseMidiNote
+        Keyboard
     , Ports.initializeInstrument <|
         Encode.object
             [ ( "instrument", Encode.string "luna" )
@@ -153,6 +157,9 @@ type Msg
     | AdjustFilterEnvSustain Float
     | AdjustFilterEnvRelease Float
     | AdjustGain Float
+    | SelectController Controller
+    | GotMidiDevices (Maybe Devices)
+    | SelectMidiDevice Controller
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -223,6 +230,45 @@ update msg model =
             , Ports.adjustAudioParam "masterGain" (Encode.float newVal)
             )
 
+        SelectController controller ->
+            case controller of
+                MIDI maybeDevices ->
+                    ( { model | controller = controller }
+                    , Ports.getMidiDevices ()
+                    )
+
+                Keyboard ->
+                    ( { model | controller = controller }
+                    , Ports.enableKeyboard ()
+                    )
+
+        GotMidiDevices maybeDevices ->
+            case maybeDevices of
+                Just devices ->
+                    ( { model | controller = MIDI (Just devices) }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( { model | controller = MIDI Nothing }
+                    , Cmd.none
+                    )
+
+        SelectMidiDevice controller ->
+            ( { model | controller = controller }
+            , case controller of
+                MIDI maybeDevices ->
+                    case maybeDevices of
+                        Just devices ->
+                            Ports.setMidiDevice devices.selected
+
+                        Nothing ->
+                            Cmd.none
+
+                Keyboard ->
+                    Cmd.none
+            )
+
 
 
 -- VIEW
@@ -232,12 +278,12 @@ view : Model -> Document Msg
 view model =
     { title = "Luna"
     , body =
-        [ row [ centerX, width (px 800) ]
+        [ column [ centerX, width (px 800), spacing 5 ]
             [ row
                 [ centerX
                 , height (px 175)
                 , paddingXY 10 6
-                , Background.color Colors.lightGrey
+                , Background.color Colors.lightestGrey
                 , Border.color Colors.darkestGrey
                 , Border.rounded 7
                 , Border.widthEach { bottom = 2, left = 2, right = 2, top = 2 }
@@ -256,6 +302,11 @@ view model =
                     , viewPanels model
                     ]
                 ]
+            , InstrumentSettings.view
+                { controller = model.controller
+                , onControllerSelection = SelectController
+                , onMidiDeviceSelection = SelectMidiDevice
+                }
             ]
         ]
     }
@@ -407,4 +458,4 @@ load shared model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Ports.midiDevicesChanged GotMidiDevices

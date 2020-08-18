@@ -101,14 +101,14 @@ checkbox checked =
          ]
             ++ (if checked then
                     [ Border.width 2
-                    , Border.color Colors.lightGrey
+                    , Border.color Colors.lightestGrey
                     , Background.color Colors.orange
                     ]
 
                 else
                     [ Border.width 1
                     , Border.color (rgb 0.7 0.7 0.7)
-                    , Background.color Colors.lightGrey
+                    , Background.color Colors.lightestGrey
                     ]
                )
         )

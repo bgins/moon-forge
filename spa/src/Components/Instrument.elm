@@ -144,7 +144,7 @@ sliderThumb =
         [ width (px 16)
         , height (px 6)
         , Border.width 1
-        , Border.color Colors.lightGrey
+        , Border.color Colors.lightestGrey
         , Background.color Colors.darkestGrey
         , Border.rounded 2
         ]
@@ -159,7 +159,7 @@ spacer =
     column [ height fill, paddingXY 3 6 ]
         [ row
             [ height fill
-            , Border.color (rgb 0.8 0.8 0.8)
+            , Border.color Colors.lightGrey
             , Border.widthEach { bottom = 0, left = 1, right = 0, top = 0 }
             ]
             [ el [] none ]
@@ -205,6 +205,6 @@ panelStyle =
     [ width fill
     , height fill
     , Border.width 1
-    , Border.color (rgb 0.8 0.8 0.8)
+    , Border.color Colors.lightGrey
     , Border.rounded 2
     ]
