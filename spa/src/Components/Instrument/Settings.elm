@@ -4,8 +4,10 @@ import Controller exposing (Controller(..), Devices)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Tuning exposing (Tuning)
 import UI.Colors as Colors
 import UI.Fonts as Fonts
 
@@ -15,8 +17,13 @@ view :
     , onControllerSelection : Controller -> msg
     , onMidiDeviceSelection : Controller -> msg
     }
+    ->
+        { tuning : Tuning
+        , onUpdateTuning : Tuning -> msg
+        , onSetTuning : Tuning -> msg
+        }
     -> Element msg
-view controllerOptions =
+view controllerOptions tuningOptions =
     row
         [ centerX
         , height (px 175)
@@ -39,11 +46,11 @@ view controllerOptions =
             , row
                 [ width fill
                 , height fill
-                , paddingXY 5 3
+                , paddingXY 5 2
                 , spacing 5
                 ]
                 [ viewControllerPanel controllerOptions
-                , viewTuningPanel
+                , viewTuningPanel tuningOptions
                 ]
             ]
         ]
@@ -170,6 +177,125 @@ deviceOption label =
                 [ text label ]
 
 
-viewTuningPanel : Element msg
-viewTuningPanel =
-    Element.none
+viewTuningPanel :
+    { tuning : Tuning
+    , onUpdateTuning : Tuning -> msg
+    , onSetTuning : Tuning -> msg
+    }
+    -> Element msg
+viewTuningPanel options =
+    column [ height fill, spacing 5 ]
+        [ row
+            [ width fill
+            , height fill
+            , padding 5
+            , Border.width 1
+            , Border.color Colors.lightGrey
+            , Border.rounded 2
+            ]
+            [ column [ alignTop, centerX, spacing 8 ]
+                [ tuningInput
+                    { label = "EDO"
+                    , current = Tuning.editableDivisions options.tuning
+                    , tuning = options.tuning
+                    , validateParam = Tuning.validateDivisions
+                    , validateEditableParam = Tuning.validateEditableDivisions
+                    , mapParam = Tuning.mapDivisions
+                    , mapEditableParam = Tuning.mapEditableDivisions
+                    , onUpdateTuning = options.onUpdateTuning
+                    , onSetTuning = options.onSetTuning
+                    , toNumber = String.toInt
+                    }
+                , tuningInput
+                    { label = "Base Frequency"
+                    , current = Tuning.editableFrequency options.tuning
+                    , tuning = options.tuning
+                    , validateParam = Tuning.validateFrequency
+                    , validateEditableParam = Tuning.validateEditableFrequency
+                    , mapParam = Tuning.mapFrequency
+                    , mapEditableParam = Tuning.mapEditableFrequency
+                    , onUpdateTuning = options.onUpdateTuning
+                    , onSetTuning = options.onSetTuning
+                    , toNumber = String.toFloat
+                    }
+                , tuningInput
+                    { label = "Base MIDI Note"
+                    , current = Tuning.editableMidiNote options.tuning
+                    , tuning = options.tuning
+                    , validateParam = Tuning.validateMidiNote
+                    , validateEditableParam = Tuning.validateEditableMidiNote
+                    , mapParam = Tuning.mapMidiNote
+                    , mapEditableParam = Tuning.mapEditableMidiNote
+                    , onUpdateTuning = options.onUpdateTuning
+                    , onSetTuning = options.onSetTuning
+                    , toNumber = String.toInt
+                    }
+                ]
+            ]
+        , row [ centerX ] [ text "Tuning" ]
+        ]
+
+
+tuningInput :
+    { label : String
+    , current : String
+    , tuning : Tuning
+    , validateParam : Maybe number -> number
+    , validateEditableParam : String -> String
+    , mapParam : (number -> number) -> Tuning -> Tuning
+    , mapEditableParam : (String -> String) -> Tuning -> Tuning
+    , onUpdateTuning : Tuning -> msg
+    , onSetTuning : Tuning -> msg
+    , toNumber : String -> Maybe number
+    }
+    -> Element msg
+tuningInput options =
+    Input.text
+        [ Events.onLoseFocus <|
+            options.onSetTuning <|
+                options.mapParam
+                    (\_ ->
+                        options.validateParam <|
+                            options.toNumber options.current
+                    )
+                <|
+                    options.mapEditableParam
+                        (\_ ->
+                            options.validateEditableParam options.current
+                        )
+                        options.tuning
+        , width (px 80)
+        , paddingXY 2 1
+        , spacing 4
+        , Background.color Colors.lightestGrey
+        , Border.color Colors.lightGrey
+        , Border.width 1
+        , Border.rounded 1
+        , focused
+            [ Border.shadow
+                { offset = ( 0, 0 )
+                , blur = 0
+                , color = rgb 0 0 0
+                , size = 0
+                }
+            , Border.color (rgb 0.5 0.5 0.5)
+            ]
+        , Font.size 10
+        , Font.center
+        ]
+        { onChange =
+            \newText ->
+                options.onUpdateTuning <|
+                    options.mapEditableParam
+                        (\_ -> newText)
+                        options.tuning
+        , label =
+            Input.labelAbove
+                [ centerX
+                , Font.size 9
+                ]
+                (text options.label)
+        , placeholder =
+            Nothing
+        , text = options.current
+        }

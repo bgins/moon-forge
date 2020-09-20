@@ -3,17 +3,16 @@ import { Keyboard } from './controllers/keyboard';
 import { Luna } from './audio/luna';
 import { Midi } from './controllers/midi';
 
-
 /*
  * Instantiate the Elm user interface.
  * Create computer keyboard and midi controls.
  */
 const app = Elm.Main.init({
-  node: document.querySelector('main'),
+  node: document.querySelector('main')
 });
 const keyboard = new Keyboard();
 const midi = new Midi();
-const instrument = null;
+let instrument = null;
 
 /* PATCH */
 
@@ -22,8 +21,8 @@ app.ports.initializeInstrument.subscribe(patch => {
   switch (patch.instrument) {
     case 'luna':
       // const luna = new Luna(patch.settings);
-      this.instrument = new Luna(patch.settings);
-      keyboard.enable(this.instrument);
+      instrument = new Luna(patch.settings);
+      keyboard.enable(instrument);
       break;
 
     default:
@@ -32,7 +31,7 @@ app.ports.initializeInstrument.subscribe(patch => {
 });
 
 app.ports.updateAudioParam.subscribe(param => {
-  this.instrument.updateAudioParam(param);
+  instrument.updateAudioParam(param);
 });
 
 /* CONTROLS */
@@ -41,7 +40,7 @@ app.ports.updateAudioParam.subscribe(param => {
  * Enable and disable computer keyboard controls from the user interface.
  */
 app.ports.enableKeyboard.subscribe(() => {
-  keyboard.enable(this.instrument);
+  keyboard.enable(instrument);
   midi.disable();
 });
 
@@ -56,7 +55,7 @@ app.ports.enableKeyboard.subscribe(() => {
  */
 app.ports.getMidiDevices.subscribe(() => {
   console.log(midi.getInputNames());
-  midi.enable(this.instrument);
+  midi.enable(instrument);
   keyboard.disable();
   app.ports.onMidiDevices.send({
     // selected: null,
@@ -71,5 +70,4 @@ app.ports.getMidiDevices.subscribe(() => {
 app.ports.setMidiDevice.subscribe(device => {
   console.log(JSON.stringify(device));
   midi.setInput(device);
-})
-
+});

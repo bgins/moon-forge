@@ -33,7 +33,7 @@ class Luna implements IInstrument {
    * Construct a new instance of Luna from flags and defaults
    */
   constructor(flags: any) {
-    console.log(flags);
+    console.log('New Luna', flags);
     this.oscillatorOptions = {
       type: flags.oscillator,
       detune: 0,
@@ -76,7 +76,7 @@ class Luna implements IInstrument {
       channelCountMode: 'max',
       channelInterpretation: 'speakers'
     };
-    this.edo = flags.temperament;
+    this.edo = flags.edo;
     this.baseFrequency = flags.baseFrequency;
     this.baseMidiNote = flags.baseMidiNote;
 
@@ -85,17 +85,26 @@ class Luna implements IInstrument {
     // all notes play through the master gain
     // the user controls a range from 0 to 1, but they actually get less
     this.masterGainNode = this.audioContext.createGain();
-    this.masterGainNode.gain.setValueAtTime(this.masterGainOptions.gain / 10, this.audioContext.currentTime);
+    this.masterGainNode.gain.setValueAtTime(
+      this.masterGainOptions.gain / 10,
+      this.audioContext.currentTime
+    );
 
     // roll of low frequencies that might be dangerous
     this.bottomFilter = this.audioContext.createBiquadFilter();
     this.bottomFilter.type = 'highpass';
-    this.bottomFilter.frequency.setValueAtTime(60, this.audioContext.currentTime);
+    this.bottomFilter.frequency.setValueAtTime(
+      60,
+      this.audioContext.currentTime
+    );
 
     // roll off things that cannot be heard
     this.topFilter = this.audioContext.createBiquadFilter();
     this.topFilter.type = 'lowpass';
-    this.topFilter.frequency.setValueAtTime(18000, this.audioContext.currentTime);
+    this.topFilter.frequency.setValueAtTime(
+      18000,
+      this.audioContext.currentTime
+    );
 
     // limit fast transients that would otherwise clip
     this.limiter = this.audioContext.createDynamicsCompressor();
@@ -167,7 +176,10 @@ class Luna implements IInstrument {
   }
 
   updateMasterGain(gain: number): void {
-    this.masterGainNode.gain.setValueAtTime(gain / 10, this.audioContext.currentTime);
+    this.masterGainNode.gain.setValueAtTime(
+      gain / 10,
+      this.audioContext.currentTime
+    );
   }
 
   /*
@@ -175,15 +187,23 @@ class Luna implements IInstrument {
    * Retriggers occur based on the end time provided by the notes' amplitude envelope.
    */
   playNote(midiNote: number): void {
-    if (this.notes[midiNote] && this.audioContext.currentTime < this.notes[midiNote].ampEnv.getEndTime()) {
+    if (
+      this.notes[midiNote] &&
+      this.audioContext.currentTime < this.notes[midiNote].ampEnv.getEndTime()
+    ) {
       // reschedule the stop far into the future, longer than any note can be held
       // this.notes[midiNote].oscillator.stop(Number.MAX_VALUE);
-      this.notes[midiNote].oscillator.stop(this.audioContext.currentTime + 10000);
+      this.notes[midiNote].oscillator.stop(
+        this.audioContext.currentTime + 10000
+      );
 
       // update settings to take effect on retrigger
       this.notes[midiNote].oscillator.type = this.oscillatorOptions.type;
       this.notes[midiNote].filterNode.type = this.filterOptions.type;
-      this.notes[midiNote].filterNode.Q.setValueAtTime(this.filterOptions.Q, this.audioContext.currentTime);
+      this.notes[midiNote].filterNode.Q.setValueAtTime(
+        this.filterOptions.Q,
+        this.audioContext.currentTime
+      );
       this.notes[midiNote].filterNode.frequency.setValueAtTime(
         this.filterOptions.frequency,
         this.audioContext.currentTime
@@ -199,7 +219,8 @@ class Luna implements IInstrument {
         attackTime: this.filterEnvOptions.attackTime,
         attackFinalLevel: this.filterOptions.frequency,
         decayTime: this.filterEnvOptions.decayTime,
-        sustainLevel: this.filterEnvOptions.sustainLevel * this.filterOptions.frequency,
+        sustainLevel:
+          this.filterEnvOptions.sustainLevel * this.filterOptions.frequency,
         releaseTime: this.filterEnvOptions.releaseTime,
         endValue: 60
       });
@@ -209,7 +230,8 @@ class Luna implements IInstrument {
 
       // conventionally: [freq = 261.625565 * 2 ** ((midiNote - 60) / 12);]
       // but we allow for arbitrary divisions of the octave here
-      const freq = this.baseFrequency * 2 ** ((midiNote - this.baseMidiNote) / this.edo);
+      const freq =
+        this.baseFrequency * 2 ** ((midiNote - this.baseMidiNote) / this.edo);
       console.log(freq);
 
       const oscillator = this.audioContext.createOscillator();
@@ -217,7 +239,10 @@ class Luna implements IInstrument {
       oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
 
       const ampGainNode = this.audioContext.createGain();
-      ampGainNode.gain.setValueAtTime(this.ampGainOptions.gain, this.audioContext.currentTime);
+      ampGainNode.gain.setValueAtTime(
+        this.ampGainOptions.gain,
+        this.audioContext.currentTime
+      );
 
       const ampEnv = new Envelope(this.audioContext, {
         attackTime: this.ampEnvOptions.attackTime,
@@ -229,14 +254,21 @@ class Luna implements IInstrument {
 
       const filterNode = this.audioContext.createBiquadFilter();
       filterNode.type = this.filterOptions.type;
-      filterNode.Q.setValueAtTime(this.filterOptions.Q, this.audioContext.currentTime);
-      filterNode.frequency.setValueAtTime(this.filterOptions.frequency, this.audioContext.currentTime);
+      filterNode.Q.setValueAtTime(
+        this.filterOptions.Q,
+        this.audioContext.currentTime
+      );
+      filterNode.frequency.setValueAtTime(
+        this.filterOptions.frequency,
+        this.audioContext.currentTime
+      );
 
       const filterEnv = new Envelope(this.audioContext, {
         attackTime: this.filterEnvOptions.attackTime,
         attackFinalLevel: this.filterOptions.frequency,
         decayTime: this.filterEnvOptions.decayTime,
-        sustainLevel: this.filterEnvOptions.sustainLevel * this.filterOptions.frequency,
+        sustainLevel:
+          this.filterEnvOptions.sustainLevel * this.filterOptions.frequency,
         releaseTime: this.filterEnvOptions.releaseTime,
         endValue: 60
       });

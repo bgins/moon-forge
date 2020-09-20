@@ -13,6 +13,7 @@ import Shared
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
 import Spa.Url as Url exposing (Url)
+import Tuning exposing (Tuning(..))
 import UI.Colors as Colors
 import UI.Fonts as Fonts
 
@@ -65,9 +66,7 @@ type alias Model =
     , filterEnvSustain : Float
     , filterEnvRelease : Float
     , gain : Float
-    , temperament : Int
-    , baseFrequency : Float
-    , baseMidiNote : Float
+    , tuning : Tuning
     , controller : Controller
     }
 
@@ -89,7 +88,7 @@ init shared { params } =
             , filterEnvSustain = 1
             , filterEnvRelease = 0.5
             , gain = 0.5
-            , temperament = 12
+            , divisions = 12
             , baseFrequency = 261.625
             , baseMidiNote = 60
             }
@@ -108,9 +107,13 @@ init shared { params } =
         initPatch.filterEnvSustain
         initPatch.filterEnvRelease
         initPatch.gain
-        initPatch.temperament
-        initPatch.baseFrequency
-        initPatch.baseMidiNote
+        (Tuning.equal
+            { baseFrequency = initPatch.baseFrequency
+            , baseMidiNote = initPatch.baseMidiNote
+            , period = 1200
+            , divisions = initPatch.divisions
+            }
+        )
         Keyboard
     , Ports.initializeInstrument <|
         Encode.object
@@ -130,7 +133,7 @@ init shared { params } =
                     , ( "filterEnvSustain", Encode.float initPatch.filterEnvSustain )
                     , ( "filterEnvRelease", Encode.float initPatch.filterEnvRelease )
                     , ( "gain", Encode.float initPatch.gain )
-                    , ( "temperament", Encode.int initPatch.temperament )
+                    , ( "edo", Encode.int initPatch.divisions )
                     , ( "baseFrequency", Encode.float initPatch.baseFrequency )
                     , ( "baseMidiNote", Encode.float initPatch.baseMidiNote )
                     ]
@@ -160,6 +163,8 @@ type Msg
     | SelectController Controller
     | GotMidiDevices (Maybe Devices)
     | SelectMidiDevice Controller
+    | UpdateTuning Tuning
+    | SetTuning Tuning
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -269,6 +274,20 @@ update msg model =
                     Cmd.none
             )
 
+        UpdateTuning tuning ->
+            ( { model | tuning = tuning }
+            , Cmd.none
+            )
+
+        SetTuning tuning ->
+            ( { model | tuning = tuning }
+            , Cmd.batch
+                [ Ports.adjustAudioParam "edo" (Encode.int (Tuning.divisions tuning))
+                , Ports.adjustAudioParam "baseFrequency" (Encode.float (Tuning.frequency tuning))
+                , Ports.adjustAudioParam "baseMidiNote" (Encode.int (Tuning.midiNote tuning))
+                ]
+            )
+
 
 
 -- VIEW
@@ -306,6 +325,10 @@ view model =
                 { controller = model.controller
                 , onControllerSelection = SelectController
                 , onMidiDeviceSelection = SelectMidiDevice
+                }
+                { tuning = model.tuning
+                , onUpdateTuning = UpdateTuning
+                , onSetTuning = SetTuning
                 }
             ]
         ]
