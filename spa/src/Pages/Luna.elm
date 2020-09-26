@@ -1,7 +1,7 @@
 module Pages.Luna exposing (Model, Msg, Params, page)
 
-import Components.Instrument as Instrument
-import Components.Instrument.Settings as InstrumentSettings
+import Components.Instrument.Controls as Instrument
+import Components.Panels.Settings as SettingsPanel
 import Controller exposing (Controller(..), Devices)
 import Element exposing (..)
 import Element.Background as Background
@@ -321,7 +321,7 @@ view model =
                     , viewPanels model
                     ]
                 ]
-            , InstrumentSettings.view
+            , SettingsPanel.view
                 { controller = model.controller
                 , onControllerSelection = SelectController
                 , onMidiDeviceSelection = SelectMidiDevice

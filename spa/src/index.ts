@@ -1,3 +1,4 @@
+// @ts-expect-error
 import { Elm } from './Main.elm';
 import { Keyboard } from './controllers/keyboard';
 import { Luna } from './audio/luna';

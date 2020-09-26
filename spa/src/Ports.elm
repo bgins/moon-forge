@@ -49,14 +49,10 @@ port initializeInstrument : Value -> Cmd msg
 {-| Enable or disable computer keyboard
 
 This is the default controller. When the keyboard is enabled, Midi controllers
-are disabled. When Midi controllers are enabled, the keyboard is disabled. It is
-possible to disable all devices.
+are disabled. When Midi controllers are enabled, the keyboard is disabled.
 
 -}
 port enableKeyboard : () -> Cmd msg
-
-
-port disableKeyboard : () -> Cmd msg
 
 
 {-| Enable, disable, or select Midi devices

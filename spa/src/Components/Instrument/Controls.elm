@@ -1,4 +1,4 @@
-module Components.Instrument exposing
+module Components.Instrument.Controls exposing
     ( displayFrequency
     , displayMagnitude
     , displayTime

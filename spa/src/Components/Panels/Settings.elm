@@ -1,4 +1,4 @@
-module Components.Instrument.Settings exposing (view)
+module Components.Panels.Settings exposing (view)
 
 import Controller exposing (Controller(..), Devices)
 import Element exposing (..)
