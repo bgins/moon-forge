@@ -1,6 +1,6 @@
 module Pages.Luna exposing (Model, Msg, Params, page)
 
-import Components.Instrument.Controls as Instrument
+import Components.Instrument.Controls as Controls
 import Components.Panels.Settings as SettingsPanel
 import Controller exposing (Controller(..), Devices)
 import Element exposing (..)
@@ -354,14 +354,15 @@ viewPanels model =
 viewOscillator : Model -> Element Msg
 viewOscillator model =
     column [ height fill, spacing 5 ]
-        [ row Instrument.panelStyle
-            [ Instrument.verticalButtonGroup "Oscillator selection"
-                model.oscillator
-                ToggleOscillator
-                -- (Instrument.verticalSvgButton model.assetsPath)
-                Instrument.verticalSvgButton
-                oscillatorToString
-                [ Sine, Square, Triangle, Sawtooth ]
+        [ row panelStyle
+            [ Controls.verticalButtonGroup
+                { label = "Oscillator selection"
+                , selected = model.oscillator
+                , options = [ Sine, Square, Triangle, Sawtooth ]
+                , onSelection = ToggleOscillator
+                , toButton = Controls.verticalSvgButton
+                , toString = oscillatorToString
+                }
             ]
         , row [ centerX ] [ text "Osc" ]
         ]
@@ -370,12 +371,36 @@ viewOscillator model =
 viewAmplitudeEnvelope : Model -> Element Msg
 viewAmplitudeEnvelope model =
     column [ height fill, spacing 5 ]
-        [ row Instrument.panelStyle
-            [ Instrument.sliderGroup
-                [ Instrument.slider "A" 2 model.ampEnvAttack Instrument.displayTime AdjustAmpEnvAttack
-                , Instrument.slider "D" 2 model.ampEnvDecay Instrument.displayTime AdjustAmpEnvDecay
-                , Instrument.slider "S" 1 model.ampEnvSustain Instrument.displayMagnitude AdjustAmpEnvSustain
-                , Instrument.slider "R" 3 model.ampEnvRelease Instrument.displayTime AdjustAmpEnvRelease
+        [ row panelStyle
+            [ Controls.sliderGroup
+                [ Controls.slider
+                    { label = "A"
+                    , scalingFactor = 2
+                    , value = model.ampEnvAttack
+                    , toString = Controls.timeToString
+                    , onChange = AdjustAmpEnvAttack
+                    }
+                , Controls.slider
+                    { label = "D"
+                    , scalingFactor = 2
+                    , value = model.ampEnvDecay
+                    , toString = Controls.timeToString
+                    , onChange = AdjustAmpEnvDecay
+                    }
+                , Controls.slider
+                    { label = "S"
+                    , scalingFactor = 1
+                    , value = model.ampEnvSustain
+                    , toString = Controls.magnitudeToString
+                    , onChange = AdjustAmpEnvSustain
+                    }
+                , Controls.slider
+                    { label = "R"
+                    , scalingFactor = 3
+                    , value = model.ampEnvRelease
+                    , toString = Controls.timeToString
+                    , onChange = AdjustAmpEnvRelease
+                    }
                 ]
             ]
         , row [ centerX ] [ text "Amplitude Envelope" ]
@@ -385,18 +410,31 @@ viewAmplitudeEnvelope model =
 viewFilter : Model -> Element Msg
 viewFilter model =
     column [ height fill, spacing 5 ]
-        [ row Instrument.panelStyle
-            [ Instrument.verticalButtonGroup "Filter selection"
-                model.filter
-                ToggleFilter
-                -- (Instrument.verticalSvgButton model.assetsPath)
-                Instrument.verticalSvgButton
-                filterToString
-                [ Lowpass, Highpass, Bandpass, Notch ]
-            , Instrument.spacer
-            , Instrument.sliderGroup
-                [ Instrument.slider "Freq" 20000 model.filterFreq Instrument.displayFrequency AdjustFilterFreq
-                , Instrument.slider "Q" 20 model.filterQ Instrument.displayMagnitude AdjustFilterQ
+        [ row panelStyle
+            [ Controls.verticalButtonGroup
+                { label = "Filter selection"
+                , selected = model.filter
+                , options = [ Lowpass, Highpass, Bandpass, Notch ]
+                , onSelection = ToggleFilter
+                , toButton = Controls.verticalSvgButton
+                , toString = filterToString
+                }
+            , Controls.spacer
+            , Controls.sliderGroup
+                [ Controls.slider
+                    { label = "Freq"
+                    , scalingFactor = 2000
+                    , value = model.filterFreq
+                    , toString = Controls.frequencyToString
+                    , onChange = AdjustFilterFreq
+                    }
+                , Controls.slider
+                    { label = "Q"
+                    , scalingFactor = 20
+                    , value = model.filterQ
+                    , toString = Controls.magnitudeToString
+                    , onChange = AdjustFilterQ
+                    }
                 ]
             ]
         , row [ centerX ] [ text "Filter" ]
@@ -406,12 +444,36 @@ viewFilter model =
 viewFilterEnvelope : Model -> Element Msg
 viewFilterEnvelope model =
     column [ height fill, spacing 5 ]
-        [ row Instrument.panelStyle
-            [ Instrument.sliderGroup
-                [ Instrument.slider "A" 2 model.filterEnvAttack Instrument.displayTime AdjustFilterEnvAttack
-                , Instrument.slider "D" 2 model.filterEnvDecay Instrument.displayTime AdjustFilterEnvDecay
-                , Instrument.slider "S" 1 model.filterEnvSustain Instrument.displayMagnitude AdjustFilterEnvSustain
-                , Instrument.slider "R" 3 model.filterEnvRelease Instrument.displayTime AdjustFilterEnvRelease
+        [ row panelStyle
+            [ Controls.sliderGroup
+                [ Controls.slider
+                    { label = "A"
+                    , scalingFactor = 2
+                    , value = model.filterEnvAttack
+                    , toString = Controls.timeToString
+                    , onChange = AdjustFilterEnvAttack
+                    }
+                , Controls.slider
+                    { label = "D"
+                    , scalingFactor = 2
+                    , value = model.filterEnvDecay
+                    , toString = Controls.timeToString
+                    , onChange = AdjustFilterEnvDecay
+                    }
+                , Controls.slider
+                    { label = "S"
+                    , scalingFactor = 1
+                    , value = model.filterEnvSustain
+                    , toString = Controls.magnitudeToString
+                    , onChange = AdjustFilterEnvSustain
+                    }
+                , Controls.slider
+                    { label = "R"
+                    , scalingFactor = 3
+                    , value = model.filterEnvRelease
+                    , toString = Controls.timeToString
+                    , onChange = AdjustFilterEnvRelease
+                    }
                 ]
             ]
         , row [ centerX ] [ text "Filter Envelope" ]
@@ -421,12 +483,29 @@ viewFilterEnvelope model =
 viewGain : Model -> Element Msg
 viewGain model =
     column [ height fill, spacing 5 ]
-        [ row Instrument.panelStyle
-            [ Instrument.sliderGroup
-                [ Instrument.slider "" 1 model.gain Instrument.displayMagnitude AdjustGain ]
+        [ row panelStyle
+            [ Controls.sliderGroup
+                [ Controls.slider
+                    { label = ""
+                    , scalingFactor = 1
+                    , value = model.gain
+                    , toString = Controls.magnitudeToString
+                    , onChange = AdjustGain
+                    }
+                ]
             ]
         , row [ centerX ] [ text "Gain" ]
         ]
+
+
+panelStyle : List (Attribute msg)
+panelStyle =
+    [ width fill
+    , height fill
+    , Border.width 1
+    , Border.color Colors.lightGrey
+    , Border.rounded 2
+    ]
 
 
 oscillatorToString : Oscillator -> String

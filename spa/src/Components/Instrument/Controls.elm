@@ -1,11 +1,10 @@
 module Components.Instrument.Controls exposing
-    ( displayFrequency
-    , displayMagnitude
-    , displayTime
-    , panelStyle
+    ( frequencyToString
+    , magnitudeToString
     , slider
     , sliderGroup
     , spacer
+    , timeToString
     , verticalButtonGroup
     , verticalSvgButton
     )
@@ -16,11 +15,6 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import UI.Colors as Colors
-import UI.Fonts as Fonts
-
-
-type alias Label =
-    String
 
 
 
@@ -28,33 +22,31 @@ type alias Label =
 
 
 verticalButtonGroup :
-    Label
-    -> a
-    -> (a -> msg)
-    -> (Label -> (Input.OptionState -> Element msg))
-    -> (a -> String)
-    -> List a
+    { label : String
+    , selected : option
+    , options : List option
+    , onSelection : option -> msg
+    , toButton : String -> (Input.OptionState -> Element msg)
+    , toString : option -> String
+    }
     -> Element msg
-verticalButtonGroup label selectedOption tomsg toButton toString options =
+verticalButtonGroup params =
     Input.radio []
-        { onChange = \choice -> tomsg choice
+        { onChange = \choice -> params.onSelection choice
         , options =
-            List.map (buttonOption toButton toString) options
-        , selected = Just selectedOption
-        , label = Input.labelHidden label
+            List.map
+                (\option ->
+                    Input.optionWith option <|
+                        params.toButton <|
+                            params.toString option
+                )
+                params.options
+        , selected = Just params.selected
+        , label = Input.labelHidden params.label
         }
 
 
-buttonOption :
-    (Label -> (Input.OptionState -> Element msg))
-    -> (a -> String)
-    -> a
-    -> Input.Option a msg
-buttonOption toButton toString option =
-    Input.optionWith option <| toButton <| toString option
-
-
-verticalSvgButton : Label -> (Input.OptionState -> Element msg)
+verticalSvgButton : String -> (Input.OptionState -> Element msg)
 verticalSvgButton label =
     \optionState ->
         row
@@ -69,23 +61,15 @@ verticalSvgButton label =
                     Border.color (rgb 0.75 0.75 0.75)
             ]
         <|
-            [ image [] { src = "../public/images/" ++ label ++ ".svg", description = label } ]
+            [ image []
+                { src = "../public/images/" ++ label ++ ".svg"
+                , description = label
+                }
+            ]
 
 
 
 -- SLIDERS
-
-
-type alias ScalingFactor =
-    Float
-
-
-type alias ParamValue =
-    Float
-
-
-type alias DisplayFunction =
-    Float -> String
 
 
 sliderGroup : List (Element msg) -> Element msg
@@ -95,13 +79,14 @@ sliderGroup sliders =
 
 
 slider :
-    Label
-    -> ScalingFactor
-    -> ParamValue
-    -> DisplayFunction
-    -> (Float -> msg)
+    { label : String
+    , scalingFactor : Float
+    , value : Float
+    , toString : Float -> String
+    , onChange : Float -> msg
+    }
     -> Element msg
-slider label scalingFactor paramValue displayFunction adjustValue =
+slider params =
     column
         [ height fill
         , spacing 2
@@ -119,12 +104,18 @@ slider label scalingFactor paramValue displayFunction adjustValue =
                     ]
                     none
             ]
-            { onChange = \newSliderVal -> adjustValue <| (newSliderVal ^ 2) * scalingFactor
-            , label = Input.labelBelow [ centerX ] <| text label
+            { onChange =
+                \newSliderVal ->
+                    params.onChange <|
+                        (newSliderVal ^ 2)
+                            * params.scalingFactor
+            , label =
+                Input.labelBelow [ centerX ] <|
+                    text params.label
             , min = 0.0001
             , max = 1
             , step = Just 0.001
-            , value = sqrt (paramValue / scalingFactor)
+            , value = sqrt (params.value / params.scalingFactor)
             , thumb = sliderThumb
             }
         , el
@@ -134,7 +125,7 @@ slider label scalingFactor paramValue displayFunction adjustValue =
             ]
           <|
             text <|
-                displayFunction paramValue
+                params.toString params.value
         ]
 
 
@@ -160,7 +151,8 @@ spacer =
         [ row
             [ height fill
             , Border.color Colors.lightGrey
-            , Border.widthEach { bottom = 0, left = 1, right = 0, top = 0 }
+            , Border.widthEach
+                { bottom = 0, left = 1, right = 0, top = 0 }
             ]
             [ el [] none ]
         ]
@@ -170,21 +162,21 @@ spacer =
 -- LABELS
 
 
-displayMagnitude : Float -> String
-displayMagnitude val =
+magnitudeToString : Float -> String
+magnitudeToString val =
     String.fromFloat
         (toFloat (round (val * 100)) / 100)
 
 
-displayTime : Float -> String
-displayTime time =
+timeToString : Float -> String
+timeToString time =
     String.fromFloat
         (toFloat (round (time * 1000)) / 1000)
         ++ "s"
 
 
-displayFrequency : Float -> String
-displayFrequency freq =
+frequencyToString : Float -> String
+frequencyToString freq =
     if freq >= 1000 then
         String.fromFloat
             (toFloat (round (freq / 100)) / 10)
@@ -194,17 +186,3 @@ displayFrequency freq =
         String.fromInt
             (round (freq * 100) // 100)
             ++ "Hz"
-
-
-
--- STYLES
-
-
-panelStyle : List (Attribute msg)
-panelStyle =
-    [ width fill
-    , height fill
-    , Border.width 1
-    , Border.color Colors.lightGrey
-    , Border.rounded 2
-    ]
