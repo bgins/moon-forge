@@ -8,6 +8,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Json.Encode as Encode
+import Oscillator exposing (Oscillator(..))
 import Ports
 import Shared
 import Spa.Document exposing (Document)
@@ -30,11 +31,6 @@ page =
         }
 
 
-type Oscillator
-    = Sine
-    | Square
-    | Triangle
-    | Sawtooth
 
 
 type Filter
@@ -120,7 +116,7 @@ init shared { params } =
             [ ( "instrument", Encode.string "luna" )
             , ( "settings"
               , Encode.object
-                    [ ( "oscillator", Encode.string (oscillatorToString initPatch.oscillator) )
+                    [ ( "oscillator", Oscillator.encode initPatch.oscillator )
                     , ( "ampEnvAttack", Encode.float initPatch.ampEnvAttack )
                     , ( "ampEnvDecay", Encode.float initPatch.ampEnvDecay )
                     , ( "ampEnvSustain", Encode.float initPatch.ampEnvSustain )
@@ -172,7 +168,7 @@ update msg model =
     case msg of
         ToggleOscillator selectedOscillator ->
             ( { model | oscillator = selectedOscillator }
-            , Ports.adjustAudioParam "oscillatorType" (Encode.string <| oscillatorToString selectedOscillator)
+            , Ports.adjustAudioParam "oscillatorType" (Oscillator.encode selectedOscillator)
             )
 
         AdjustAmpEnvAttack newVal ->
@@ -361,7 +357,7 @@ viewOscillator model =
                 , options = [ Sine, Square, Triangle, Sawtooth ]
                 , onSelection = ToggleOscillator
                 , toButton = Controls.verticalSvgButton
-                , toString = oscillatorToString
+                , toString = Oscillator.oscillatorToString
                 }
             ]
         , row [ centerX ] [ text "Osc" ]
@@ -508,20 +504,6 @@ panelStyle =
     ]
 
 
-oscillatorToString : Oscillator -> String
-oscillatorToString oscillator =
-    case oscillator of
-        Sine ->
-            "sine"
-
-        Square ->
-            "square"
-
-        Triangle ->
-            "triangle"
-
-        Sawtooth ->
-            "sawtooth"
 
 
 filterToString : Filter -> String
