@@ -1,6 +1,5 @@
 module Pages.Luna exposing (Model, Msg, Params, page)
 
-import Filter exposing (Filter(..))
 import Components.Instrument.Controls as Controls
 import Components.Panels.Settings as SettingsPanel
 import Controller exposing (Controller(..), Devices)
@@ -8,6 +7,7 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
+import Filter exposing (Filter(..))
 import Json.Encode as Encode
 import Oscillator exposing (Oscillator(..))
 import Ports
@@ -30,9 +30,6 @@ page =
         , save = save
         , load = load
         }
-
-
-
 
 
 
@@ -116,7 +113,7 @@ init shared { params } =
                     , ( "ampEnvDecay", Encode.float initPatch.ampEnvDecay )
                     , ( "ampEnvSustain", Encode.float initPatch.ampEnvSustain )
                     , ( "ampEnvRelease", Encode.float initPatch.ampEnvRelease )
-                    , ( "filter", Filter.encode initPatch.filter) 
+                    , ( "filter", Filter.encode initPatch.filter )
                     , ( "filterFreq", Encode.float initPatch.filterFreq )
                     , ( "filterQ", Encode.float initPatch.filterQ )
                     , ( "filterEnvAttack", Encode.float initPatch.filterEnvAttack )
@@ -288,7 +285,7 @@ view : Model -> Document Msg
 view model =
     { title = "Luna"
     , body =
-        [ column [ centerX, width (px 800), spacing 5 ]
+        [ column [ centerX, width (px 800), paddingXY 0 30, spacing 5 ]
             [ row
                 [ centerX
                 , height (px 175)
@@ -497,9 +494,6 @@ panelStyle =
     , Border.color Colors.lightGrey
     , Border.rounded 2
     ]
-
-
-
 
 
 

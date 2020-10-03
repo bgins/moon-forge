@@ -13,6 +13,8 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
+import Html exposing (p)
+import Html.Events exposing (onMouseEnter)
 import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
 import UI.Colors as Colors
@@ -86,11 +88,16 @@ view { page, toMsg } model =
                 , Border.color Colors.darkestGrey
                 ]
                 [ column
-                    [ alignLeft ]
+                    [ centerX
+                    , mouseOver
+                        [ Font.shadow
+                            { offset = ( 0, 0 )
+                            , blur = 6
+                            , color = rgb255 150 150 180
+                            }
+                        ]
+                    ]
                     [ link [ Font.family Fonts.cinzel, Font.size 36 ] { url = Route.toString Route.Top, label = text "Moon Forge" } ]
-                , row
-                    [ alignRight, spacing 20 ]
-                    [ link [ Font.family Fonts.quattrocento ] { url = Route.toString Route.Luna, label = text "Luna" } ]
                 ]
             , column [ height fill, width fill, paddingXY 20 0 ] page.body
             ]
