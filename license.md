@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2019 Brian Ginsburg
+Copyright (c) 2020 Brian Ginsburg
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

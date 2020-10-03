@@ -1,38 +1,21 @@
 # Moon Forge
 
-Moon Forge is an environment for creating web audio instruments for the [Lunar
-Rocks](https://github.com/codyshepherd/lunar-rocks) project.
+Moon Forge is an environment for creating web audio instruments for the [Lunar Rocks](https://github.com/codyshepherd/lunar-rocks) project. Luna, a subractive synth, has been implemented and more instruments are planned.
 
-So far, one subtractive synth has been implemented. Much work remains to make
-this project a useful environment for working on arbitrary instruments and
-effects.
+Moon Forge can be played with your keyboard or a MIDI device in Chrome and Chromium-based browsers, and keyboard in Firefox.
 
-Moon Forge works in Chrome and Chromium. Testing and fixes for Firefox are in progress.
-
-You can try the most recent stable build at: [moon-forge.brianginsburg.com](https://moon-forge.brianginsburg.com)
+You can try the most recent stable build at: [moon-forge.brianginsburg.com](https://moon-forge.brianginsburg.com).
 
 ## Luna
 
-Luna is a subtractive synth with one oscillator, amplitude envelope, one
-filter, filter envelope, and master gain. Luna can be played with your
-computer keyboard or a MIDI controller.
+Luna is a subtractive synth with one oscillator, amplitude envelope, one filter, filter envelope, and master gain.
 
-Luna can be retuned to any equal division of the octave by selecting
-"Custom Tuning" and entering the number of divisions, base frequency, and the Midi note
+Luna can be retuned to any equal division of the octave by entering the number of divisions, base frequency, and the MIDI note
 at the base frequency.
-
-Luna may appear a bit small on the big empty Moon Forge canvas, but this is
-by design because Luna will eventually be a small part of a larger application.
-Zoom in your browser to get a closer look.
 
 ## Setup
 
-Install [Elm](https://guide.elm-lang.org/install.html) v0.19,
-[TypeScript](https://www.typescriptlang.org/index.html#download-links), and
-[Parcel](https://parceljs.org/getting_started.html).
-
-Most of these tools can be installed easily with `npm` which comes with any
-installation of [node](https://nodejs.org/en/download/).
+Install [Elm](https://guide.elm-lang.org/install.html) v0.19.1,[TypeScript](https://www.typescriptlang.org/index.html#download-links), and [Parcel](https://parceljs.org/getting_started.html).
 
 Clone this repository and install its dependencies:
 
@@ -42,20 +25,27 @@ npm install
 
 ## Develop
 
-To work on the application locally with bundling and hot reloading:
+To work on the application locally:
 
 ```
-parcel src/index.html
+npm start
 ```
 
 Navigate to `localhost:1234` in your web browser.
 
 ## Build
 
-To produce a minified version of Moon Forge suitable for deployment:
+Both build commands compile to the `dist` directory.
+
+Compile a development build without optimization.
 
 ```
-parcel build src/index.html
+npm run build:staging
 ```
 
-This will produce a `dist/` directory with an `index.html` and static assets.
+Compile an optimized production build.
+
+```
+npm run build
+```
+
