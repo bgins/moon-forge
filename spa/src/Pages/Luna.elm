@@ -1,5 +1,6 @@
 module Pages.Luna exposing (Model, Msg, Params, page)
 
+import Filter exposing (Filter(..))
 import Components.Instrument.Controls as Controls
 import Components.Panels.Settings as SettingsPanel
 import Controller exposing (Controller(..), Devices)
@@ -32,12 +33,6 @@ page =
 
 
 
-
-type Filter
-    = Lowpass
-    | Highpass
-    | Bandpass
-    | Notch
 
 
 
@@ -121,7 +116,7 @@ init shared { params } =
                     , ( "ampEnvDecay", Encode.float initPatch.ampEnvDecay )
                     , ( "ampEnvSustain", Encode.float initPatch.ampEnvSustain )
                     , ( "ampEnvRelease", Encode.float initPatch.ampEnvRelease )
-                    , ( "filter", Encode.string (filterToString initPatch.filter) )
+                    , ( "filter", Filter.encode initPatch.filter) 
                     , ( "filterFreq", Encode.float initPatch.filterFreq )
                     , ( "filterQ", Encode.float initPatch.filterQ )
                     , ( "filterEnvAttack", Encode.float initPatch.filterEnvAttack )
@@ -193,7 +188,7 @@ update msg model =
 
         ToggleFilter selectedFilter ->
             ( { model | filter = selectedFilter }
-            , Ports.adjustAudioParam "filterType" (Encode.string <| filterToString selectedFilter)
+            , Ports.adjustAudioParam "filterType" (Filter.encode selectedFilter)
             )
 
         AdjustFilterFreq newVal ->
@@ -413,7 +408,7 @@ viewFilter model =
                 , options = [ Lowpass, Highpass, Bandpass, Notch ]
                 , onSelection = ToggleFilter
                 , toButton = Controls.verticalSvgButton
-                , toString = filterToString
+                , toString = Filter.filterToString
                 }
             , Controls.spacer
             , Controls.sliderGroup
@@ -505,21 +500,6 @@ panelStyle =
 
 
 
-
-filterToString : Filter -> String
-filterToString filter =
-    case filter of
-        Lowpass ->
-            "lowpass"
-
-        Highpass ->
-            "highpass"
-
-        Bandpass ->
-            "bandpass"
-
-        Notch ->
-            "notch"
 
 
 
