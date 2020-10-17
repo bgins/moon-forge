@@ -27,7 +27,7 @@ class Midi {
   }
 
   getSelectedInputName(): string {
-    return this.input.name;
+    return this.input?.name;
   }
 
   getInputNames(): string[] {
