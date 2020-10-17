@@ -21,7 +21,6 @@ app.ports.initializeInstrument.subscribe(patch => {
   console.log(patch);
   switch (patch.instrument) {
     case 'luna':
-      // const luna = new Luna(patch.settings);
       instrument = new Luna(patch.settings);
       keyboard.enable(instrument);
       break;
@@ -45,9 +44,6 @@ app.ports.enableKeyboard.subscribe(() => {
   midi.disable();
 });
 
-// app.ports.disableKeyboard.subscribe(() => {
-//   keyboard.disable();
-// });
 
 /*
  * Enable midi controls from the user interface.
@@ -59,7 +55,6 @@ app.ports.getMidiDevices.subscribe(() => {
   midi.enable(instrument);
   keyboard.disable();
   app.ports.onMidiDevices.send({
-    // selected: null,
     selected: midi.getSelectedInputName(),
     available: midi.getInputNames()
   });
