@@ -8,6 +8,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Filter exposing (Filter(..))
+import Instrument.Luna.Patch as Patch exposing (Patch)
 import Json.Encode as Encode
 import Oscillator exposing (Oscillator(..))
 import Ports
@@ -41,91 +42,18 @@ type alias Params =
 
 
 type alias Model =
-    { oscillator : Oscillator
-    , ampEnvAttack : Float
-    , ampEnvDecay : Float
-    , ampEnvSustain : Float
-    , ampEnvRelease : Float
-    , filter : Filter
-    , filterFreq : Float
-    , filterQ : Float
-    , filterEnvAttack : Float
-    , filterEnvDecay : Float
-    , filterEnvSustain : Float
-    , filterEnvRelease : Float
-    , gain : Float
-    , tuning : Tuning
+    { patch : Patch
     , controller : Controller
     }
 
 
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
 init shared { params } =
-    let
-        initPatch =
-            { oscillator = Square
-            , ampEnvAttack = 0.05
-            , ampEnvDecay = 0.05
-            , ampEnvSustain = 1
-            , ampEnvRelease = 0.5
-            , filter = Lowpass
-            , filterFreq = 2000
-            , filterQ = 2
-            , filterEnvAttack = 0.05
-            , filterEnvDecay = 0.05
-            , filterEnvSustain = 1
-            , filterEnvRelease = 0.5
-            , gain = 0.5
-            , divisions = 12
-            , baseFrequency = 261.625
-            , baseMidiNote = 60
-            }
-    in
-    ( Model
-        initPatch.oscillator
-        initPatch.ampEnvAttack
-        initPatch.ampEnvDecay
-        initPatch.ampEnvSustain
-        initPatch.ampEnvRelease
-        initPatch.filter
-        initPatch.filterFreq
-        initPatch.filterQ
-        initPatch.filterEnvAttack
-        initPatch.filterEnvDecay
-        initPatch.filterEnvSustain
-        initPatch.filterEnvRelease
-        initPatch.gain
-        (Tuning.equal
-            { baseFrequency = initPatch.baseFrequency
-            , baseMidiNote = initPatch.baseMidiNote
-            , period = 1200
-            , divisions = initPatch.divisions
-            }
-        )
-        Keyboard
+    ( Model Patch.init Keyboard
     , Ports.initializeInstrument <|
         Encode.object
             [ ( "instrument", Encode.string "luna" )
-            , ( "settings"
-              , Encode.object
-                    [ ( "oscillator", Oscillator.encode initPatch.oscillator )
-                    , ( "ampEnvAttack", Encode.float initPatch.ampEnvAttack )
-                    , ( "ampEnvDecay", Encode.float initPatch.ampEnvDecay )
-                    , ( "ampEnvSustain", Encode.float initPatch.ampEnvSustain )
-                    , ( "ampEnvRelease", Encode.float initPatch.ampEnvRelease )
-                    , ( "filter", Filter.encode initPatch.filter )
-                    , ( "filterFreq", Encode.float initPatch.filterFreq )
-                    , ( "filterQ", Encode.float initPatch.filterQ )
-                    , ( "filterEnvAttack", Encode.float initPatch.filterEnvAttack )
-                    , ( "filterEnvDecay", Encode.float initPatch.filterEnvDecay )
-                    , ( "filterEnvSustain", Encode.float initPatch.filterEnvSustain )
-                    , ( "filterEnvRelease", Encode.float initPatch.filterEnvRelease )
-                    , ( "gain", Encode.float initPatch.gain )
-                    , ( "edo", Encode.int initPatch.divisions )
-                    , ( "baseFrequency", Encode.float initPatch.baseFrequency )
-                    , ( "baseMidiNote", Encode.float initPatch.baseMidiNote )
-                    ]
-              )
+            , ( "patch", Patch.encode Patch.init )
             ]
     )
 
@@ -148,79 +76,108 @@ type Msg
     | AdjustFilterEnvSustain Float
     | AdjustFilterEnvRelease Float
     | AdjustGain Float
+    | UpdateTuning Tuning
+    | SetTuning Tuning
     | SelectController Controller
     | GotMidiDevices (Maybe Devices)
     | SelectMidiDevice Controller
-    | UpdateTuning Tuning
-    | SetTuning Tuning
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ToggleOscillator selectedOscillator ->
-            ( { model | oscillator = selectedOscillator }
+            ( model
+                |> updatePatch (\patch -> { patch | oscillator = selectedOscillator })
             , Ports.adjustAudioParam "oscillatorType" (Oscillator.encode selectedOscillator)
             )
 
         AdjustAmpEnvAttack newVal ->
-            ( { model | ampEnvAttack = newVal }
+            ( model
+                |> updatePatch (\patch -> { patch | ampEnvAttack = newVal })
             , Ports.adjustAudioParam "ampEnvAttack" (Encode.float newVal)
             )
 
         AdjustAmpEnvDecay newVal ->
-            ( { model | ampEnvDecay = newVal }
+            ( model
+                |> updatePatch (\patch -> { patch | ampEnvDecay = newVal })
             , Ports.adjustAudioParam "ampEnvDecay" (Encode.float newVal)
             )
 
         AdjustAmpEnvSustain newVal ->
-            ( { model | ampEnvSustain = newVal }
+            ( model
+                |> updatePatch (\patch -> { patch | ampEnvSustain = newVal })
             , Ports.adjustAudioParam "ampEnvSustain" (Encode.float newVal)
             )
 
         AdjustAmpEnvRelease newVal ->
-            ( { model | ampEnvRelease = newVal }
+            ( model
+                |> updatePatch (\patch -> { patch | ampEnvRelease = newVal })
             , Ports.adjustAudioParam "ampEnvRelease" (Encode.float newVal)
             )
 
         ToggleFilter selectedFilter ->
-            ( { model | filter = selectedFilter }
+            ( model
+                |> updatePatch (\patch -> { patch | filter = selectedFilter })
             , Ports.adjustAudioParam "filterType" (Filter.encode selectedFilter)
             )
 
         AdjustFilterFreq newVal ->
-            ( { model | filterFreq = newVal }
+            ( model
+                |> updatePatch (\patch -> { patch | filterFreq = newVal })
             , Ports.adjustAudioParam "filterFreq" (Encode.float newVal)
             )
 
         AdjustFilterQ newVal ->
-            ( { model | filterQ = newVal }
+            ( model
+                |> updatePatch (\patch -> { patch | filterQ = newVal })
             , Ports.adjustAudioParam "filterQ" (Encode.float newVal)
             )
 
         AdjustFilterEnvAttack newVal ->
-            ( { model | filterEnvAttack = newVal }
+            ( model
+                |> updatePatch (\patch -> { patch | filterEnvAttack = newVal })
             , Ports.adjustAudioParam "filterEnvAttack" (Encode.float newVal)
             )
 
         AdjustFilterEnvDecay newVal ->
-            ( { model | filterEnvDecay = newVal }
+            ( model
+                |> updatePatch (\patch -> { patch | filterEnvDecay = newVal })
             , Ports.adjustAudioParam "filterEnvDecay" (Encode.float newVal)
             )
 
         AdjustFilterEnvSustain newVal ->
-            ( { model | filterEnvSustain = newVal }
+            ( model
+                |> updatePatch (\patch -> { patch | filterEnvSustain = newVal })
             , Ports.adjustAudioParam "filterEnvSustain" (Encode.float newVal)
             )
 
         AdjustFilterEnvRelease newVal ->
-            ( { model | filterEnvRelease = newVal }
+            ( model
+                |> updatePatch (\patch -> { patch | filterEnvRelease = newVal })
             , Ports.adjustAudioParam "filterEnvRelease" (Encode.float newVal)
             )
 
         AdjustGain newVal ->
-            ( { model | gain = newVal }
+            ( model
+                |> updatePatch (\patch -> { patch | gain = newVal })
             , Ports.adjustAudioParam "masterGain" (Encode.float newVal)
+            )
+
+        UpdateTuning tuning ->
+            ( model
+                |> updatePatch (\patch -> { patch | tuning = tuning })
+            , Cmd.none
+            )
+
+        SetTuning tuning ->
+            ( model
+                |> updatePatch (\patch -> { patch | tuning = tuning })
+            , Cmd.batch
+                [ Ports.adjustAudioParam "divisions" (Encode.int (Tuning.divisions tuning))
+                , Ports.adjustAudioParam "baseFrequency" (Encode.float (Tuning.frequency tuning))
+                , Ports.adjustAudioParam "baseMidiNote" (Encode.int (Tuning.midiNote tuning))
+                ]
             )
 
         SelectController controller ->
@@ -262,19 +219,10 @@ update msg model =
                     Cmd.none
             )
 
-        UpdateTuning tuning ->
-            ( { model | tuning = tuning }
-            , Cmd.none
-            )
 
-        SetTuning tuning ->
-            ( { model | tuning = tuning }
-            , Cmd.batch
-                [ Ports.adjustAudioParam "edo" (Encode.int (Tuning.divisions tuning))
-                , Ports.adjustAudioParam "baseFrequency" (Encode.float (Tuning.frequency tuning))
-                , Ports.adjustAudioParam "baseMidiNote" (Encode.int (Tuning.midiNote tuning))
-                ]
-            )
+updatePatch : (Patch -> Patch) -> Model -> Model
+updatePatch transform model =
+    { model | patch = transform model.patch }
 
 
 
@@ -314,7 +262,7 @@ view model =
                 , onControllerSelection = SelectController
                 , onMidiDeviceSelection = SelectMidiDevice
                 }
-                { tuning = model.tuning
+                { tuning = model.patch.tuning
                 , onUpdateTuning = UpdateTuning
                 , onSetTuning = SetTuning
                 }
@@ -345,7 +293,7 @@ viewOscillator model =
         [ row panelStyle
             [ Controls.verticalButtonGroup
                 { label = "Oscillator selection"
-                , selected = model.oscillator
+                , selected = model.patch.oscillator
                 , options = [ Sine, Square, Triangle, Sawtooth ]
                 , onSelection = ToggleOscillator
                 , toButton = Controls.verticalSvgButton
@@ -364,28 +312,28 @@ viewAmplitudeEnvelope model =
                 [ Controls.slider
                     { label = "A"
                     , scalingFactor = 2
-                    , value = model.ampEnvAttack
+                    , value = model.patch.ampEnvAttack
                     , toString = Controls.timeToString
                     , onChange = AdjustAmpEnvAttack
                     }
                 , Controls.slider
                     { label = "D"
                     , scalingFactor = 2
-                    , value = model.ampEnvDecay
+                    , value = model.patch.ampEnvDecay
                     , toString = Controls.timeToString
                     , onChange = AdjustAmpEnvDecay
                     }
                 , Controls.slider
                     { label = "S"
                     , scalingFactor = 1
-                    , value = model.ampEnvSustain
+                    , value = model.patch.ampEnvSustain
                     , toString = Controls.magnitudeToString
                     , onChange = AdjustAmpEnvSustain
                     }
                 , Controls.slider
                     { label = "R"
                     , scalingFactor = 3
-                    , value = model.ampEnvRelease
+                    , value = model.patch.ampEnvRelease
                     , toString = Controls.timeToString
                     , onChange = AdjustAmpEnvRelease
                     }
@@ -401,7 +349,7 @@ viewFilter model =
         [ row panelStyle
             [ Controls.verticalButtonGroup
                 { label = "Filter selection"
-                , selected = model.filter
+                , selected = model.patch.filter
                 , options = [ Lowpass, Highpass, Bandpass, Notch ]
                 , onSelection = ToggleFilter
                 , toButton = Controls.verticalSvgButton
@@ -412,14 +360,14 @@ viewFilter model =
                 [ Controls.slider
                     { label = "Freq"
                     , scalingFactor = 2000
-                    , value = model.filterFreq
+                    , value = model.patch.filterFreq
                     , toString = Controls.frequencyToString
                     , onChange = AdjustFilterFreq
                     }
                 , Controls.slider
                     { label = "Q"
                     , scalingFactor = 20
-                    , value = model.filterQ
+                    , value = model.patch.filterQ
                     , toString = Controls.magnitudeToString
                     , onChange = AdjustFilterQ
                     }
@@ -437,28 +385,28 @@ viewFilterEnvelope model =
                 [ Controls.slider
                     { label = "A"
                     , scalingFactor = 2
-                    , value = model.filterEnvAttack
+                    , value = model.patch.filterEnvAttack
                     , toString = Controls.timeToString
                     , onChange = AdjustFilterEnvAttack
                     }
                 , Controls.slider
                     { label = "D"
                     , scalingFactor = 2
-                    , value = model.filterEnvDecay
+                    , value = model.patch.filterEnvDecay
                     , toString = Controls.timeToString
                     , onChange = AdjustFilterEnvDecay
                     }
                 , Controls.slider
                     { label = "S"
                     , scalingFactor = 1
-                    , value = model.filterEnvSustain
+                    , value = model.patch.filterEnvSustain
                     , toString = Controls.magnitudeToString
                     , onChange = AdjustFilterEnvSustain
                     }
                 , Controls.slider
                     { label = "R"
                     , scalingFactor = 3
-                    , value = model.filterEnvRelease
+                    , value = model.patch.filterEnvRelease
                     , toString = Controls.timeToString
                     , onChange = AdjustFilterEnvRelease
                     }
@@ -476,7 +424,7 @@ viewGain model =
                 [ Controls.slider
                     { label = ""
                     , scalingFactor = 1
-                    , value = model.gain
+                    , value = model.patch.gain
                     , toString = Controls.magnitudeToString
                     , onChange = AdjustGain
                     }

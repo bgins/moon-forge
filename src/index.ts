@@ -17,11 +17,10 @@ let instrument = null;
 
 /* PATCH */
 
-app.ports.initializeInstrument.subscribe(patch => {
-  console.log(patch);
-  switch (patch.instrument) {
+app.ports.initializeInstrument.subscribe(init => {
+  switch (init.instrument) {
     case 'luna':
-      instrument = new Luna(patch.settings);
+      instrument = new Luna(init.patch);
       keyboard.enable(instrument);
       break;
 

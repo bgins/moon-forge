@@ -1,10 +1,12 @@
 module Tuning exposing
     ( Tuning
+    , decoder
     , divisions
     , editableDivisions
     , editableFrequency
     , editableMidiNote
     , editablePeriod
+    , encode
     , equal
     , frequency
     , mapDivisions
@@ -26,6 +28,10 @@ module Tuning exposing
     , validateMidiNote
     , validatePeriod
     )
+
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline exposing (custom, required)
+import Json.Encode as Encode exposing (Value)
 
 
 type Tuning
@@ -255,6 +261,8 @@ mapEditablePeriod transform (Equal basis equalInfo) =
                     (Tuple.first equalInfo.period)
                     (transform <| Tuple.second equalInfo.period)
         }
+
+
 mapDivisions : (Int -> Int) -> Tuning -> Tuning
 mapDivisions transform (Equal basis equalInfo) =
     Equal
@@ -277,7 +285,6 @@ mapEditableDivisions transform (Equal basis equalInfo) =
                     (Tuple.first equalInfo.divisions)
                     (transform <| Tuple.second equalInfo.divisions)
         }
-
 
 
 validatePeriod : Maybe Int -> Int
@@ -308,7 +315,6 @@ validateEditablePeriod val =
             "1200"
 
 
-
 validateDivisions : Maybe Int -> Int
 validateDivisions maybeDivisions =
     case maybeDivisions of
@@ -335,3 +341,78 @@ validateEditableDivisions val =
 
         Nothing ->
             "12"
+
+
+
+-- ENCODE
+
+
+encode : Tuning -> Value
+encode tuning =
+    case tuning of
+        Equal basis equalInfo ->
+            Encode.object
+                [ ( "variant", Encode.string "equal" )
+                , ( "baseFrequency", Encode.float <| frequency tuning )
+                , ( "baseMidiNote", Encode.int <| midiNote tuning )
+                , ( "period", Encode.float <| period tuning )
+                , ( "divisions", Encode.int <| divisions tuning )
+                ]
+
+
+
+-- DECODE
+
+
+decoder : Decoder Tuning
+decoder =
+    Decode.field "variant" Decode.string
+        |> Decode.andThen
+            (\variant ->
+                case variant of
+                    "equal" ->
+                        Decode.succeed Equal
+                            |> custom basisDecoder
+                            |> custom equalInfoDecoder
+
+                    _ ->
+                        Decode.fail "Invalid tuning variant"
+            )
+
+
+basisDecoder : Decoder Basis
+basisDecoder =
+    Decode.succeed Basis
+        |> required "baseFrequency"
+            (Decode.map
+                (\freq ->
+                    ( freq, String.fromFloat freq )
+                )
+                Decode.float
+            )
+        |> required "baseMidiNote"
+            (Decode.map
+                (\note ->
+                    ( note, String.fromInt note )
+                )
+                Decode.int
+            )
+
+
+equalInfoDecoder : Decoder EqualInfo
+equalInfoDecoder =
+    Decode.succeed EqualInfo
+        |> required "period"
+            (Decode.map
+                (\prd ->
+                    ( prd, String.fromFloat prd )
+                )
+                Decode.float
+            )
+        |> required "divisions"
+            (Decode.map
+                (\divs ->
+                    ( divs, String.fromInt divs )
+                )
+                Decode.int
+            )
