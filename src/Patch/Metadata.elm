@@ -1,25 +1,37 @@
-module Patch.Metadata exposing (Metadata)
+module Patch.Metadata exposing (PatchMetadata, init, new)
 
+import Creator as Creator exposing (Creator)
 import Element.Input exposing (username)
-import Patch.Category exposing (Category(..))
-import Patch.Creator as Creator exposing (Creator)
+import Patch.Category exposing (PatchCategory(..))
 
 
-type alias Metadata =
+type alias PatchMetadata =
     { name : String
     , instrument : String
     , creator : Creator
-    , category : Category
+    , category : PatchCategory
     , tags : List String
     , description : String
     , public : Bool
     }
 
 
-init : String -> Metadata
-init username =
+init : String -> PatchMetadata
+init instrument =
+    { name = "Init"
+    , instrument = instrument
+    , creator = Creator.factory
+    , category = Basses
+    , tags = []
+    , description = "Init Square"
+    , public = False
+    }
+
+
+new : String -> String -> PatchMetadata
+new username instrument =
     { name = ""
-    , instrument = ""
+    , instrument = instrument
     , creator = Creator.user username
     , category = Basses
     , tags = []

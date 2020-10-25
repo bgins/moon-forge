@@ -1,10 +1,15 @@
-module Patch.Creator exposing (Creator, user)
+module Creator exposing (Creator, factory, user)
 
 
 type Creator
     = Factory
     | User String
     | Community String
+
+
+factory : Creator
+factory =
+    Factory
 
 
 user : String -> Creator

@@ -1,7 +1,7 @@
-module Patch.Category exposing (Category(..))
+module Patch.Category exposing (PatchCategory(..))
 
 
-type Category
+type PatchCategory
     = Basses
     | Leads
     | Keys
