@@ -43,6 +43,9 @@ app.ports.enableKeyboard.subscribe(() => {
   midi.disable();
 });
 
+app.ports.disableKeyboard.subscribe(() => {
+  keyboard.disable();
+});
 
 /*
  * Enable midi controls from the user interface.

@@ -81,6 +81,7 @@ type Msg
     | SelectController Controller
     | GotMidiDevices (Maybe Devices)
     | SelectMidiDevice Controller
+    | DisableKeyboardController
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -177,6 +178,12 @@ update msg model =
                 [ Ports.adjustAudioParam "divisions" (Encode.int (Tuning.divisions tuning))
                 , Ports.adjustAudioParam "baseFrequency" (Encode.float (Tuning.frequency tuning))
                 , Ports.adjustAudioParam "baseMidiNote" (Encode.int (Tuning.midiNote tuning))
+                , case model.controller of
+                    MIDI _ ->
+                        Cmd.none
+
+                    Keyboard ->
+                        Ports.enableKeyboard ()
                 ]
             )
 
@@ -217,6 +224,16 @@ update msg model =
 
                 Keyboard ->
                     Cmd.none
+            )
+
+        DisableKeyboardController ->
+            ( model
+            , case model.controller of
+                MIDI _ ->
+                    Cmd.none
+
+                Keyboard ->
+                    Ports.disableKeyboard ()
             )
 
 
@@ -265,6 +282,7 @@ view model =
                 { tuning = model.patch.tuning
                 , onUpdateTuning = UpdateTuning
                 , onSetTuning = SetTuning
+                , onInputFocus = DisableKeyboardController
                 }
             ]
         ]

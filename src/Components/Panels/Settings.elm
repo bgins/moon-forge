@@ -21,6 +21,7 @@ view :
         { tuning : Tuning
         , onUpdateTuning : Tuning -> msg
         , onSetTuning : Tuning -> msg
+        , onInputFocus : msg
         }
     -> Element msg
 view controllerOptions tuningOptions =
@@ -181,6 +182,7 @@ viewTuningPanel :
     { tuning : Tuning
     , onUpdateTuning : Tuning -> msg
     , onSetTuning : Tuning -> msg
+    , onInputFocus : msg
     }
     -> Element msg
 viewTuningPanel options =
@@ -202,6 +204,7 @@ viewTuningPanel options =
                     , validateEditableParam = Tuning.validateEditableDivisions
                     , mapParam = Tuning.mapDivisions
                     , mapEditableParam = Tuning.mapEditableDivisions
+                    , onInputFocus = options.onInputFocus
                     , onUpdateTuning = options.onUpdateTuning
                     , onSetTuning = options.onSetTuning
                     , toNumber = String.toInt
@@ -214,6 +217,7 @@ viewTuningPanel options =
                     , validateEditableParam = Tuning.validateEditableFrequency
                     , mapParam = Tuning.mapFrequency
                     , mapEditableParam = Tuning.mapEditableFrequency
+                    , onInputFocus = options.onInputFocus
                     , onUpdateTuning = options.onUpdateTuning
                     , onSetTuning = options.onSetTuning
                     , toNumber = String.toFloat
@@ -226,6 +230,7 @@ viewTuningPanel options =
                     , validateEditableParam = Tuning.validateEditableMidiNote
                     , mapParam = Tuning.mapMidiNote
                     , mapEditableParam = Tuning.mapEditableMidiNote
+                    , onInputFocus = options.onInputFocus
                     , onUpdateTuning = options.onUpdateTuning
                     , onSetTuning = options.onSetTuning
                     , toNumber = String.toInt
@@ -244,6 +249,7 @@ tuningInput :
     , validateEditableParam : String -> String
     , mapParam : (number -> number) -> Tuning -> Tuning
     , mapEditableParam : (String -> String) -> Tuning -> Tuning
+    , onInputFocus : msg
     , onUpdateTuning : Tuning -> msg
     , onSetTuning : Tuning -> msg
     , toNumber : String -> Maybe number
@@ -264,6 +270,7 @@ tuningInput options =
                             options.validateEditableParam options.current
                         )
                         options.tuning
+        , Events.onFocus options.onInputFocus
         , width (px 80)
         , paddingXY 2 1
         , spacing 4

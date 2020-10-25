@@ -1,5 +1,6 @@
 port module Ports exposing
     ( adjustAudioParam
+    , disableKeyboard
     , enableKeyboard
     , getMidiDevices
     , initializeInstrument
@@ -8,6 +9,7 @@ port module Ports exposing
     )
 
 import Controller exposing (Devices, devicesDecoder)
+import Html.Attributes exposing (disabled)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode exposing (Value)
@@ -53,6 +55,9 @@ are disabled. When Midi controllers are enabled, the keyboard is disabled.
 
 -}
 port enableKeyboard : () -> Cmd msg
+
+
+port disableKeyboard : () -> Cmd msg
 
 
 {-| Enable, disable, or select Midi devices

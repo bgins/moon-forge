@@ -60,7 +60,7 @@ view { params } =
                     [ Font.family Fonts.quattrocento
                     , Font.size 20
                     ]
-                    [ text "You play them on your keyboard using the letter keys and sometimes symbol keys. You can also play using a MIDI controller in Chrome."
+                    [ text "You play them on your keyboard using the letter keys, number keys, and sometimes symbol keys. You can also play using a MIDI controller in Chrome."
                     ]
                 ]
             , column [ width fill, spacing 15 ]
