@@ -1,8 +1,10 @@
 module Pages.Luna exposing (Model, Msg, Params, page)
 
 import Components.Instrument.Controls as Controls
+import Components.Panels.PatchBrowser as PatchBrowser exposing (EditMode, PatchBrowser)
 import Components.Panels.Settings as SettingsPanel
 import Controller exposing (Controller(..), Devices)
+import Creator exposing (Creator)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -11,6 +13,8 @@ import Filter exposing (Filter(..))
 import Instrument.Luna.Patch as Patch exposing (Patch)
 import Json.Encode as Encode
 import Oscillator exposing (Oscillator(..))
+import Patch.Category exposing (PatchCategory)
+import Patch.Metadata exposing (PatchMetadata)
 import Ports
 import Shared
 import Spa.Document exposing (Document)
@@ -44,12 +48,19 @@ type alias Params =
 type alias Model =
     { patch : Patch
     , controller : Controller
+    , patchBrowser : PatchBrowser
     }
 
 
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
 init shared { params } =
-    ( Model Patch.init Keyboard
+    ( Model
+        Patch.init
+        Keyboard
+        (PatchBrowser.init
+            (Patch.Metadata.init "luna")
+            []
+        )
     , Ports.initializeInstrument <|
         Encode.object
             [ ( "instrument", Encode.string "luna" )
@@ -82,6 +93,11 @@ type Msg
     | GotMidiDevices (Maybe Devices)
     | SelectMidiDevice Controller
     | DisableKeyboardController
+    | UpdatePatchBrowser PatchBrowser
+    | LoadPatch PatchMetadata
+    | GotPatch PatchMetadata Patch
+    | StorePatch PatchMetadata
+    | DeletePatch PatchMetadata
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -236,6 +252,23 @@ update msg model =
                     Ports.disableKeyboard ()
             )
 
+        UpdatePatchBrowser patchBrowser ->
+            ( { model | patchBrowser = patchBrowser }
+            , Cmd.none
+            )
+
+        LoadPatch metadata ->
+            ( model, Cmd.none )
+
+        GotPatch metadata patch ->
+            ( model, Cmd.none )
+
+        StorePatch metadata ->
+            ( model, Cmd.none )
+
+        DeletePatch metadata ->
+            ( model, Cmd.none )
+
 
 updatePatch : (Patch -> Patch) -> Model -> Model
 updatePatch transform model =
@@ -282,6 +315,14 @@ view model =
                 { tuning = model.patch.tuning
                 , onUpdateTuning = UpdateTuning
                 , onSetTuning = SetTuning
+                , onInputFocus = DisableKeyboardController
+                }
+            , PatchBrowser.view
+                { patchBrowser = model.patchBrowser
+                , onUpdatePatchBrowser = UpdatePatchBrowser
+                , onLoadPatch = LoadPatch
+                , onStorePatch = StorePatch
+                , onDeletePatch = DeletePatch
                 , onInputFocus = DisableKeyboardController
                 }
             ]
