@@ -1,7 +1,7 @@
 module Pages.Luna exposing (Model, Msg, Params, page)
 
 import Components.Instrument.Controls as Controls
-import Components.Panels.PatchBrowser as PatchBrowser exposing (EditMode, PatchBrowser)
+import Components.Panels.PatchBrowser as PatchBrowser exposing (PatchBrowser)
 import Components.Panels.Settings as SettingsPanel
 import Controller exposing (Controller(..), Devices)
 import Creator exposing (Creator)
@@ -10,10 +10,11 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Filter exposing (Filter(..))
+import Instrument exposing (Instrument(..))
 import Instrument.Luna.Patch as Patch exposing (Patch)
 import Json.Encode as Encode
 import Oscillator exposing (Oscillator(..))
-import Patch.Category exposing (PatchCategory)
+import Patch.Category exposing (PatchCategory(..))
 import Patch.Metadata exposing (PatchMetadata)
 import Ports
 import Shared
@@ -58,8 +59,11 @@ init shared { params } =
         Patch.init
         Keyboard
         (PatchBrowser.init
-            (Patch.Metadata.init "luna")
-            []
+            { username = "megasaw"
+            , instrument = Luna
+            , currentPatch = Patch.Metadata.init Luna
+            , allPatches = placeholderPatches
+            }
         )
     , Ports.initializeInstrument <|
         Encode.object
@@ -67,6 +71,166 @@ init shared { params } =
             , ( "patch", Patch.encode Patch.init )
             ]
     )
+
+
+placeholderPatches : List PatchMetadata
+placeholderPatches =
+    [ Patch.Metadata.init Luna
+    , { name = "bass test 1"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "A first test"
+      , public = True
+      }
+    , { name = "bass test 2"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "A second test"
+      , public = True
+      }
+    , { name = "bass test 3"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "A third test"
+      , public = True
+      }
+    , { name = "bass test 4"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "A fourth test"
+      , public = True
+      }
+    , { name = "bass test 5"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "A fifth test"
+      , public = True
+      }
+    , { name = "bass test 6"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "A sixth test"
+      , public = True
+      }
+    , { name = "bass test 7"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "A seventh test"
+      , public = True
+      }
+    , { name = "bass test 8"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "An eighth test"
+      , public = True
+      }
+    , { name = "bass test 9"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "A fifth test"
+      , public = True
+      }
+    , { name = "bass test 10"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "A sixth test"
+      , public = True
+      }
+    , { name = "bass test 11"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "A seventh test"
+      , public = True
+      }
+    , { name = "bass test 12"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "An eighth test"
+      , public = True
+      }
+    , { name = "bass test 13"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "A sixth test"
+      , public = True
+      }
+    , { name = "bass test 14"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "A seventh test"
+      , public = True
+      }
+    , { name = "bass test 15"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Basses
+      , tags = []
+      , description = "An eighth test"
+      , public = True
+      }
+    , { name = "lead test"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Leads
+      , tags = []
+      , description = "A lead test"
+      , public = True
+      }
+    , { name = "keys test"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Keys
+      , tags = []
+      , description = "A keys test"
+      , public = True
+      }
+    , { name = "pads test"
+      , instrument = Luna
+      , creator = Creator.factory
+      , category = Pads
+      , tags = []
+      , description = """A pads test. This description is a bit longer because
+      pads can take a long time to fully experience, and so the merit more words.
+      """
+      , public = True
+      }
+    , { name = "User bass test"
+      , instrument = Luna
+      , creator = Creator.user "megasaw"
+      , category = Basses
+      , tags = []
+      , description = "A user bass patch test"
+      , public = True
+      }
+    ]
 
 
 
@@ -93,6 +257,7 @@ type Msg
     | GotMidiDevices (Maybe Devices)
     | SelectMidiDevice Controller
     | DisableKeyboardController
+    | EnableKeyboardController
     | UpdatePatchBrowser PatchBrowser
     | LoadPatch PatchMetadata
     | GotPatch PatchMetadata Patch
@@ -252,22 +417,58 @@ update msg model =
                     Ports.disableKeyboard ()
             )
 
+        EnableKeyboardController ->
+            ( model
+            , case model.controller of
+                MIDI _ ->
+                    Cmd.none
+
+                Keyboard ->
+                    Ports.enableKeyboard ()
+            )
+
         UpdatePatchBrowser patchBrowser ->
             ( { model | patchBrowser = patchBrowser }
             , Cmd.none
             )
 
         LoadPatch metadata ->
-            ( model, Cmd.none )
+            -- TODO: Remove model when persistence is implemented
+            ( { model
+                | patchBrowser =
+                    PatchBrowser.loadPatch metadata model.patchBrowser
+              }
+            , Cmd.none
+            )
 
         GotPatch metadata patch ->
-            ( model, Cmd.none )
+            ( { model
+                | patchBrowser =
+                    PatchBrowser.loadPatch metadata model.patchBrowser
+              }
+            , Cmd.none
+            )
 
         StorePatch metadata ->
-            ( model, Cmd.none )
+            ( { model
+                | patchBrowser =
+                    PatchBrowser.savePatch metadata model.patchBrowser
+              }
+            , case model.controller of
+                MIDI _ ->
+                    Cmd.none
+
+                Keyboard ->
+                    Ports.enableKeyboard ()
+            )
 
         DeletePatch metadata ->
-            ( model, Cmd.none )
+            ( { model
+                | patchBrowser =
+                    PatchBrowser.deletePatch metadata model.patchBrowser
+              }
+            , Cmd.none
+            )
 
 
 updatePatch : (Patch -> Patch) -> Model -> Model
@@ -324,6 +525,7 @@ view model =
                 , onStorePatch = StorePatch
                 , onDeletePatch = DeletePatch
                 , onInputFocus = DisableKeyboardController
+                , onInputLoseFocus = EnableKeyboardController
                 }
             ]
         ]

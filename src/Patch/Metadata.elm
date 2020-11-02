@@ -2,12 +2,13 @@ module Patch.Metadata exposing (PatchMetadata, init, new)
 
 import Creator as Creator exposing (Creator)
 import Element.Input exposing (username)
+import Instrument exposing (Instrument(..))
 import Patch.Category exposing (PatchCategory(..))
 
 
 type alias PatchMetadata =
     { name : String
-    , instrument : String
+    , instrument : Instrument
     , creator : Creator
     , category : PatchCategory
     , tags : List String
@@ -16,7 +17,7 @@ type alias PatchMetadata =
     }
 
 
-init : String -> PatchMetadata
+init : Instrument -> PatchMetadata
 init instrument =
     { name = "Init"
     , instrument = instrument
@@ -28,7 +29,7 @@ init instrument =
     }
 
 
-new : String -> String -> PatchMetadata
+new : String -> Instrument -> PatchMetadata
 new username instrument =
     { name = ""
     , instrument = instrument

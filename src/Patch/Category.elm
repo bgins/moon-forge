@@ -1,4 +1,4 @@
-module Patch.Category exposing (PatchCategory(..))
+module Patch.Category exposing (PatchCategory(..), all, toString)
 
 
 type PatchCategory
@@ -6,3 +6,24 @@ type PatchCategory
     | Leads
     | Keys
     | Pads
+
+
+all : List PatchCategory
+all =
+    [ Basses, Leads, Keys, Pads ]
+
+
+toString : PatchCategory -> String
+toString category =
+    case category of
+        Basses ->
+            "Basses"
+
+        Leads ->
+            "Leads"
+
+        Keys ->
+            "Keys"
+
+        Pads ->
+            "Pads"
