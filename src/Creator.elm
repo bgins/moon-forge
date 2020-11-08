@@ -1,4 +1,6 @@
-module Creator exposing (Creator, canEdit, factory, toString, user)
+module Creator exposing (Creator, canEdit, decoder, factory, toString, user)
+
+import Json.Decode as Decode exposing (Decoder)
 
 
 type Creator
@@ -38,3 +40,31 @@ toString creator =
 
         Community name ->
             name
+
+
+decoder : Decoder Creator
+decoder =
+    Decode.field "type" Decode.string
+        |> Decode.andThen
+            (\str ->
+                case str of
+                    "factory" ->
+                        Decode.succeed Factory
+
+                    "user" ->
+                        Decode.field "name" Decode.string
+                            |> Decode.andThen
+                                (\name ->
+                                    Decode.succeed (User name)
+                                )
+
+                    "community" ->
+                        Decode.field "name" Decode.string
+                            |> Decode.andThen
+                                (\name ->
+                                    Decode.succeed (Community name)
+                                )
+
+                    _ ->
+                        Decode.fail "Not a valid creator type"
+            )

@@ -62,175 +62,22 @@ init shared { params } =
             { username = "megasaw"
             , instrument = Luna
             , currentPatch = Patch.Metadata.init Luna
-            , allPatches = placeholderPatches
+            , allPatches = []
             }
         )
-    , Ports.initializeInstrument <|
-        Encode.object
-            [ ( "instrument", Encode.string "luna" )
-            , ( "patch", Patch.encode Patch.init )
-            ]
+    , Cmd.batch
+        [ Ports.initializeInstrument <|
+            Encode.object
+                [ ( "instrument", Encode.string "luna" )
+                , ( "patch", Patch.encode Patch.init )
+                ]
+        , Ports.loadPatches <|
+            Encode.object
+                [ ( "instrument", Encode.string "luna" )
+                , ( "username", Encode.null )
+                ]
+        ]
     )
-
-
-placeholderPatches : List PatchMetadata
-placeholderPatches =
-    [ Patch.Metadata.init Luna
-    , { name = "bass test 1"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "A first test"
-      , public = True
-      }
-    , { name = "bass test 2"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "A second test"
-      , public = True
-      }
-    , { name = "bass test 3"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "A third test"
-      , public = True
-      }
-    , { name = "bass test 4"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "A fourth test"
-      , public = True
-      }
-    , { name = "bass test 5"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "A fifth test"
-      , public = True
-      }
-    , { name = "bass test 6"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "A sixth test"
-      , public = True
-      }
-    , { name = "bass test 7"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "A seventh test"
-      , public = True
-      }
-    , { name = "bass test 8"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "An eighth test"
-      , public = True
-      }
-    , { name = "bass test 9"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "A fifth test"
-      , public = True
-      }
-    , { name = "bass test 10"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "A sixth test"
-      , public = True
-      }
-    , { name = "bass test 11"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "A seventh test"
-      , public = True
-      }
-    , { name = "bass test 12"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "An eighth test"
-      , public = True
-      }
-    , { name = "bass test 13"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "A sixth test"
-      , public = True
-      }
-    , { name = "bass test 14"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "A seventh test"
-      , public = True
-      }
-    , { name = "bass test 15"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Basses
-      , tags = []
-      , description = "An eighth test"
-      , public = True
-      }
-    , { name = "lead test"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Leads
-      , tags = []
-      , description = "A lead test"
-      , public = True
-      }
-    , { name = "keys test"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Keys
-      , tags = []
-      , description = "A keys test"
-      , public = True
-      }
-    , { name = "pads test"
-      , instrument = Luna
-      , creator = Creator.factory
-      , category = Pads
-      , tags = []
-      , description = """A pads test. This description is a bit longer because
-      pads can take a long time to fully experience, and so the merit more words.
-      """
-      , public = True
-      }
-    , { name = "User bass test"
-      , instrument = Luna
-      , creator = Creator.user "megasaw"
-      , category = Basses
-      , tags = []
-      , description = "A user bass patch test"
-      , public = True
-      }
-    ]
 
 
 
@@ -259,6 +106,7 @@ type Msg
     | DisableKeyboardController
     | EnableKeyboardController
     | UpdatePatchBrowser PatchBrowser
+    | GotPatches (List PatchMetadata)
     | LoadPatch PatchMetadata
     | GotPatch PatchMetadata Patch
     | StorePatch PatchMetadata
@@ -429,6 +277,14 @@ update msg model =
 
         UpdatePatchBrowser patchBrowser ->
             ( { model | patchBrowser = patchBrowser }
+            , Cmd.none
+            )
+
+        GotPatches patches ->
+            ( { model
+                | patchBrowser =
+                    PatchBrowser.loadPatches patches model.patchBrowser
+              }
             , Cmd.none
             )
 
@@ -725,4 +581,7 @@ load shared model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Ports.midiDevicesChanged GotMidiDevices
+    Sub.batch
+        [ Ports.midiDevicesChanged GotMidiDevices
+        , Ports.gotPatches GotPatches
+        ]

@@ -3,6 +3,7 @@ module Components.Panels.PatchBrowser exposing
     , deletePatch
     , init
     , loadPatch
+    , loadPatches
     , savePatch
     , view
     )
@@ -77,6 +78,12 @@ loadPatch : PatchMetadata -> PatchBrowser -> PatchBrowser
 loadPatch patch patchBrowser =
     patchBrowser
         |> mapCurrentPatch (\_ -> patch)
+
+
+loadPatches : List PatchMetadata -> PatchBrowser -> PatchBrowser
+loadPatches patches patchBrowser =
+    patchBrowser
+        |> mapPatches (\_ -> patches)
 
 
 savePatch : PatchMetadata -> PatchBrowser -> PatchBrowser

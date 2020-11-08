@@ -3,7 +3,9 @@ port module Ports exposing
     , disableKeyboard
     , enableKeyboard
     , getMidiDevices
+    , gotPatches
     , initializeInstrument
+    , loadPatches
     , midiDevicesChanged
     , setMidiDevice
     )
@@ -13,6 +15,7 @@ import Html.Attributes exposing (disabled)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode exposing (Value)
+import Patch.Metadata exposing (PatchMetadata)
 
 
 
@@ -44,6 +47,25 @@ adjustAudioParam name val =
 port initializeInstrument : Value -> Cmd msg
 
 
+port loadPatches : Value -> Cmd msg
+
+
+port onPatches : (Encode.Value -> msg) -> Sub msg
+
+
+gotPatches : (List PatchMetadata -> msg) -> Sub msg
+gotPatches toMsg =
+    onPatches <|
+        \value ->
+            toMsg <|
+                case Decode.decodeValue (Decode.list Patch.Metadata.decoder) value of
+                    Ok patches ->
+                        patches
+
+                    Err err ->
+                        []
+
+
 
 -- CONTROLLER
 
@@ -66,7 +88,7 @@ getMidiDevices enables Midi control and requests a list of available devices.
 
 setMidiDevice sets the active Midi device in WebMidi.
 
-onMidiDevicesRequest receives a list of available Midi devices.
+onMidiDevices receives a list of available Midi devices.
 
 WebMidi control has not been implemented in all browsers. If WebMidi is not
 available, getMidiDevices will return an empty list.
