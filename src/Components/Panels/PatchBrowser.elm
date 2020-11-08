@@ -544,17 +544,7 @@ viewEditorPanel { patchBrowser, onStorePatch, onUpdatePatchBrowser, onInputFocus
                         Input.placeholder [] (text "Name your patch")
                 , label = Input.labelAbove [] (text "Name")
                 }
-            , case editMode patchBrowser of
-                Creating ->
-                    if nameExists then
-                        el [ Font.size 10, Font.color Colors.red ]
-                            (text "A patch with this name already exists")
-
-                    else
-                        none
-
-                _ ->
-                    none
+            , viewNameValidationError patch patchBrowser
             ]
         , Input.multiline
             [ height (px 70)
@@ -614,10 +604,16 @@ viewEditorPanel { patchBrowser, onStorePatch, onUpdatePatchBrowser, onInputFocus
                     (text "Category")
             }
         , row [ width fill, spacing 5 ]
-            [ if not (String.isEmpty patch.name) then
+            [ if
+                not (String.isEmpty patch.name)
+                    && (String.length patch.name < 30)
+              then
                 case editMode patchBrowser of
                     Creating ->
-                        if not nameExists then
+                        if
+                            not <|
+                                List.any (\p -> patch.name == p.name) (allPatches patchBrowser)
+                        then
                             Input.button
                                 [ width fill
                                 , paddingXY 0 3
@@ -674,6 +670,26 @@ viewEditorPanel { patchBrowser, onStorePatch, onUpdatePatchBrowser, onInputFocus
                 }
             ]
         ]
+
+
+viewNameValidationError : PatchMetadata -> PatchBrowser -> Element msg
+viewNameValidationError patch patchBrowser =
+    if String.length patch.name >= 30 then
+        el [ Font.size 10, Font.color Colors.red ]
+            (text "Name must be less than 30 characters")
+
+    else
+        case editMode patchBrowser of
+            Creating ->
+                if List.any (\p -> patch.name == p.name) (allPatches patchBrowser) then
+                    el [ Font.size 10, Font.color Colors.red ]
+                        (text "A patch with this name already exists")
+
+                else
+                    none
+
+            _ ->
+                none
 
 
 editorCategoryOption : PatchCategory -> Input.Option PatchCategory msg
