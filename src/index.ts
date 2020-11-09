@@ -18,7 +18,7 @@ let patches = [];
 
 /* PATCH */
 
-app.ports.initializeInstrument.subscribe(init => {
+app.ports.patchInstrument.subscribe(init => {
   switch (init.instrument) {
     case 'luna':
       instrument = new Luna(init.patch);
@@ -38,11 +38,20 @@ app.ports.loadPatches.subscribe(({ instrument, username }) => {
   } else {
     fetch("public/patches.json")
       .then(response => response.json())
-      .then(patches => {
-        patches = patches;
+      .then(ps => {
+        patches = ps;
         app.ports.onPatches.send(patches);
       })
   }
+});
+
+app.ports.loadPatch.subscribe(metadata => {
+  const patch =
+    patches
+      .filter(p => p.creator.type === metadata.creator.type)
+      .find(p => p.name === metadata.name)
+
+  app.ports.onPatch.send(patch);
 });
 
 app.ports.updateAudioParam.subscribe(param => {

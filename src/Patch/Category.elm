@@ -1,6 +1,13 @@
-module Patch.Category exposing (PatchCategory(..), all, decoder, toString)
+module Patch.Category exposing
+    ( PatchCategory(..)
+    , all
+    , decoder
+    , encode
+    , toString
+    )
 
 import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode exposing (Value)
 
 
 type PatchCategory
@@ -13,6 +20,12 @@ type PatchCategory
 all : List PatchCategory
 all =
     [ Basses, Leads, Keys, Pads ]
+
+
+encode : PatchCategory -> Value
+encode category =
+    Encode.string <|
+        String.toLower (toString category)
 
 
 toString : PatchCategory -> String

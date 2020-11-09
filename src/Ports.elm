@@ -3,16 +3,18 @@ port module Ports exposing
     , disableKeyboard
     , enableKeyboard
     , getMidiDevices
+    , gotPatch
     , gotPatches
-    , initializeInstrument
+    , loadPatch
     , loadPatches
     , midiDevicesChanged
+    , patchInstrument
     , setMidiDevice
     )
 
 import Controller exposing (Devices, devicesDecoder)
 import Html.Attributes exposing (disabled)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode exposing (Value)
 import Patch.Metadata exposing (PatchMetadata)
@@ -44,7 +46,7 @@ adjustAudioParam name val =
 -- PATCH
 
 
-port initializeInstrument : Value -> Cmd msg
+port patchInstrument : Value -> Cmd msg
 
 
 port loadPatches : Value -> Cmd msg
@@ -64,6 +66,40 @@ gotPatches toMsg =
 
                     Err err ->
                         []
+
+
+port loadPatch : Value -> Cmd msg
+
+
+port onPatch : (Encode.Value -> msg) -> Sub msg
+
+
+gotPatch :
+    Decoder a
+    -> (Maybe { metadata : PatchMetadata, patch : a } -> msg)
+    -> Sub msg
+gotPatch patchDecoder toMsg =
+    onPatch <|
+        \value ->
+            toMsg <|
+                case Decode.decodeValue Patch.Metadata.decoder value of
+                    Ok metadata ->
+                        case
+                            Decode.decodeValue
+                                (Decode.field "patch" patchDecoder)
+                                value
+                        of
+                            Ok patch ->
+                                Just
+                                    { metadata = metadata
+                                    , patch = patch
+                                    }
+
+                            Err err ->
+                                Nothing
+
+                    Err err ->
+                        Nothing
 
 
 

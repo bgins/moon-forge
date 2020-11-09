@@ -66,9 +66,9 @@ init shared { params } =
             }
         )
     , Cmd.batch
-        [ Ports.initializeInstrument <|
+        [ Ports.patchInstrument <|
             Encode.object
-                [ ( "instrument", Encode.string "luna" )
+                [ ( "instrument", Instrument.encode Luna )
                 , ( "patch", Patch.encode Patch.init )
                 ]
         , Ports.loadPatches <|
@@ -108,7 +108,7 @@ type Msg
     | UpdatePatchBrowser PatchBrowser
     | GotPatches (List PatchMetadata)
     | LoadPatch PatchMetadata
-    | GotPatch PatchMetadata Patch
+    | GotPatch (Maybe { metadata : PatchMetadata, patch : Patch })
     | StorePatch PatchMetadata
     | DeletePatch PatchMetadata
 
@@ -289,21 +289,29 @@ update msg model =
             )
 
         LoadPatch metadata ->
-            -- TODO: Remove model when persistence is implemented
-            ( { model
-                | patchBrowser =
-                    PatchBrowser.loadPatch metadata model.patchBrowser
-              }
-            , Cmd.none
+            ( model
+            , Ports.loadPatch <|
+                Patch.Metadata.encode metadata
             )
 
-        GotPatch metadata patch ->
-            ( { model
-                | patchBrowser =
-                    PatchBrowser.loadPatch metadata model.patchBrowser
-              }
-            , Cmd.none
-            )
+        GotPatch maybePatch ->
+            case maybePatch of
+                Just { metadata, patch } ->
+                    ( { model
+                        | patchBrowser =
+                            PatchBrowser.loadPatch metadata model.patchBrowser
+                        , patch = patch
+                      }
+                    , Ports.patchInstrument <|
+                        Encode.object
+                            [ ( "instrument", Instrument.encode metadata.instrument )
+                            , ( "patch", Patch.encode patch )
+                            ]
+                    )
+
+                Nothing ->
+                    -- show a patch could not load error
+                    ( model, Cmd.none )
 
         StorePatch metadata ->
             ( { model
@@ -584,4 +592,5 @@ subscriptions model =
     Sub.batch
         [ Ports.midiDevicesChanged GotMidiDevices
         , Ports.gotPatches GotPatches
+        , Ports.gotPatch Patch.decoder GotPatch
         ]

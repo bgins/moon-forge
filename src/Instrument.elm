@@ -1,10 +1,24 @@
-module Instrument exposing (Instrument(..), decoder)
+module Instrument exposing (Instrument(..), decoder, encode)
 
 import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode exposing (Value)
 
 
 type Instrument
     = Luna
+
+
+encode : Instrument -> Value
+encode instrument =
+    Encode.string <|
+        String.toLower (toString instrument)
+
+
+toString : Instrument -> String
+toString instrument =
+    case instrument of
+        Luna ->
+            "Luna"
 
 
 decoder : Decoder Instrument

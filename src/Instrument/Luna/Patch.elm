@@ -1,4 +1,4 @@
-module Instrument.Luna.Patch exposing (Patch, encode, init)
+module Instrument.Luna.Patch exposing (Patch, decoder, encode, init)
 
 import Filter exposing (Filter(..))
 import Json.Decode as Decode exposing (Decoder)
@@ -71,8 +71,8 @@ encode patch =
         ]
 
 
-decode : Decoder Patch
-decode =
+decoder : Decoder Patch
+decoder =
     Decode.succeed Patch
         |> required "oscillator" Oscillator.decoder
         |> required "ampEnvAttack" Decode.float

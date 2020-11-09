@@ -1,10 +1,17 @@
-module Patch.Metadata exposing (PatchMetadata, decoder, init, new)
+module Patch.Metadata exposing
+    ( PatchMetadata
+    , decoder
+    , encode
+    , init
+    , new
+    )
 
 import Creator as Creator exposing (Creator)
 import Element.Input exposing (username)
 import Instrument exposing (Instrument(..))
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
+import Json.Encode as Encode exposing (Value)
 import Patch.Category exposing (PatchCategory(..))
 
 
@@ -41,6 +48,19 @@ new username instrument =
     , description = ""
     , public = False
     }
+
+
+encode : PatchMetadata -> Value
+encode metadata =
+    Encode.object
+        [ ( "name", Encode.string metadata.name )
+        , ( "instrument", Instrument.encode metadata.instrument )
+        , ( "creator", Creator.encode metadata.creator )
+        , ( "category", Patch.Category.encode metadata.category )
+        , ( "tags", Encode.list Encode.string metadata.tags )
+        , ( "description", Encode.string metadata.description )
+        , ( "public", Encode.bool metadata.public )
+        ]
 
 
 decoder : Decoder PatchMetadata

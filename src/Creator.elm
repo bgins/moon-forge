@@ -1,6 +1,15 @@
-module Creator exposing (Creator, canEdit, decoder, factory, toString, user)
+module Creator exposing
+    ( Creator
+    , canEdit
+    , decoder
+    , encode
+    , factory
+    , toString
+    , user
+    )
 
 import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode exposing (Value)
 
 
 type Creator
@@ -40,6 +49,26 @@ toString creator =
 
         Community name ->
             name
+
+
+encode : Creator -> Value
+encode creator =
+    case creator of
+        Factory ->
+            Encode.object
+                [ ( "type", Encode.string "factory" ) ]
+
+        User name ->
+            Encode.object
+                [ ( "type", Encode.string "user" )
+                , ( "name", Encode.string "name" )
+                ]
+
+        Community name ->
+            Encode.object
+                [ ( "type", Encode.string "community" )
+                , ( "name", Encode.string "name" )
+                ]
 
 
 decoder : Decoder Creator
