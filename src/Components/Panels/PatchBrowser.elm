@@ -5,6 +5,7 @@ module Components.Panels.PatchBrowser exposing
     , loadPatch
     , loadPatches
     , savePatch
+    , showErrorMessage
     , view
     )
 
@@ -15,7 +16,6 @@ import Element.Border as Border
 import Element.Events exposing (onClick, onFocus, onLoseFocus)
 import Element.Font as Font
 import Element.Input as Input
-import Html.Attributes exposing (property)
 import Html.Events exposing (onInput, onMouseOver)
 import Instrument exposing (Instrument)
 import Json.Encode as Encode
@@ -42,6 +42,7 @@ type alias Internals =
     , editablePatch : PatchMetadata
     , categoryFilter : PatchCategory
     , creatorFilter : Creator
+    , errorMessage : Maybe String
     }
 
 
@@ -78,6 +79,7 @@ init options =
                     Patch.Metadata.init options.instrument
         , categoryFilter = Basses
         , creatorFilter = Creator.factory
+        , errorMessage = Nothing
         }
 
 
@@ -85,12 +87,14 @@ loadPatch : PatchMetadata -> PatchBrowser -> PatchBrowser
 loadPatch patch patchBrowser =
     patchBrowser
         |> mapCurrentPatch (\_ -> patch)
+        |> mapErrorMessage (\_ -> Nothing)
 
 
 loadPatches : List PatchMetadata -> PatchBrowser -> PatchBrowser
 loadPatches patches patchBrowser =
     patchBrowser
         |> mapPatches (\_ -> patches)
+        |> mapErrorMessage (\_ -> Nothing)
 
 
 savePatch : PatchMetadata -> PatchBrowser -> PatchBrowser
@@ -101,6 +105,7 @@ savePatch patch patchBrowser =
         |> mapCreatorFilter (\_ -> patch.creator)
         |> mapCategoryFilter (\_ -> patch.category)
         |> mapCurrentPatch (\_ -> patch)
+        |> mapErrorMessage (\_ -> Nothing)
 
 
 updatePatches : PatchMetadata -> PatchBrowser -> PatchBrowser
@@ -155,6 +160,13 @@ deletePatch patch patchBrowser =
                             |> mapCategoryFilter (\_ -> Basses)
                             |> mapCurrentPatch (\_ -> Patch.Metadata.init (instrument patchBrowser))
            )
+        |> mapErrorMessage (\_ -> Nothing)
+
+
+showErrorMessage : String -> PatchBrowser -> PatchBrowser
+showErrorMessage message patchBrowser =
+    patchBrowser
+        |> mapErrorMessage (\_ -> Just message)
 
 
 
@@ -196,6 +208,11 @@ creatorFilter (PatchBrowser internals) =
     internals.creatorFilter
 
 
+errorMessage : PatchBrowser -> Maybe String
+errorMessage (PatchBrowser internals) =
+    internals.errorMessage
+
+
 
 -- UPDATE
 
@@ -234,6 +251,12 @@ mapCreatorFilter : (Creator -> Creator) -> PatchBrowser -> PatchBrowser
 mapCreatorFilter transform (PatchBrowser internals) =
     PatchBrowser
         { internals | creatorFilter = transform internals.creatorFilter }
+
+
+mapErrorMessage : (Maybe String -> Maybe String) -> PatchBrowser -> PatchBrowser
+mapErrorMessage transform (PatchBrowser internals) =
+    PatchBrowser
+        { internals | errorMessage = transform internals.errorMessage }
 
 
 
@@ -322,12 +345,14 @@ view options =
                         NotEditing ->
                             viewDescriptionPanel options.patchBrowser
                     ]
-                , row [ paddingXY 5 2 ]
+                , row [ width fill, spacing 5, paddingXY 5 2 ]
                     [ viewCreatorSelector
                         { patchBrowser = options.patchBrowser
                         , onUpdatePatchBrowser = options.onUpdatePatchBrowser
                         , session = options.session
                         }
+                    , viewErrorMessage <|
+                        errorMessage options.patchBrowser
                     ]
                 ]
             ]
@@ -418,7 +443,10 @@ addIcon { patchBrowser, onUpdatePatchBrowser, creator } =
                 <|
                     mapEditMode
                         (\_ -> Creating)
-                        patchBrowser
+                    <|
+                        mapErrorMessage
+                            (\_ -> Nothing)
+                            patchBrowser
         ]
     <|
         html <|
@@ -496,7 +524,10 @@ viewFilterPanel { patchBrowser, onUpdatePatchBrowser } =
                         onUpdatePatchBrowser <|
                             mapCategoryFilter
                                 (\_ -> category)
-                                patchBrowser
+                            <|
+                                mapErrorMessage
+                                    (\_ -> Nothing)
+                                    patchBrowser
                 , options =
                     List.map categoryOption Patch.Category.all
                 , selected =
@@ -878,7 +909,10 @@ viewCreatorSelector { patchBrowser, session, onUpdatePatchBrowser } =
                             onUpdatePatchBrowser <|
                                 mapCreatorFilter
                                     (\_ -> choice)
-                                    patchBrowser
+                                <|
+                                    mapErrorMessage
+                                        (\_ -> Nothing)
+                                        patchBrowser
                     , options =
                         [ Input.optionWith
                             Creator.factory
@@ -913,3 +947,22 @@ creatorOption label =
                     Background.color Colors.lightPurple
             ]
             [ row [ centerX ] [ text label ] ]
+
+
+viewErrorMessage : Maybe String -> Element msg
+viewErrorMessage maybeErrorMessage =
+    case maybeErrorMessage of
+        Just message ->
+            column [ width (px 190) ]
+                [ el
+                    [ centerX
+                    , Font.color Colors.red
+                    ]
+                  <|
+                    text <|
+                        String.join " "
+                            [ "●", message, "●" ]
+                ]
+
+        Nothing ->
+            none

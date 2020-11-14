@@ -301,8 +301,14 @@ update msg model =
                     )
 
                 Nothing ->
-                    -- show a patch could not load error
-                    ( model, Cmd.none )
+                    ( { model
+                        | patchBrowser =
+                            PatchBrowser.showErrorMessage
+                                "Could not load patch"
+                                model.patchBrowser
+                      }
+                    , Cmd.none
+                    )
 
         StorePatch metadata ->
             ( { model

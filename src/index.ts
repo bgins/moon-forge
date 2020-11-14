@@ -16,8 +16,9 @@ const keyboard = new Keyboard();
 const midi = new Midi();
 let instrument = null;
 let patches = [];
-let fs;
+let fs = null;
 
+// fetch and load factory patches
 fetch("public/patches.json")
   .then(response => response.json())
   .then(ps => {
@@ -53,7 +54,7 @@ webnative.initialize(fissionInit).then(async state => {
         await fs.publish();
       }
 
-      // init user patches
+      // load user patches
       const instruments = ['luna']
       const userPatches = await Promise.all(
         instruments
