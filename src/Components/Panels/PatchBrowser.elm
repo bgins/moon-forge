@@ -16,13 +16,14 @@ import Element.Events exposing (onClick, onFocus, onLoseFocus)
 import Element.Font as Font
 import Element.Input as Input
 import Html.Attributes exposing (property)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onInput, onMouseOver)
 import Instrument exposing (Instrument)
 import Json.Encode as Encode
 import Material.Icons.Round as Icons exposing (category)
 import Material.Icons.Types exposing (Coloring(..))
 import Patch.Category exposing (PatchCategory(..))
 import Patch.Metadata exposing (PatchMetadata)
+import Session exposing (Session)
 import Svg
 import UI.Colors as Colors
 import UI.Fonts as Fonts
@@ -33,7 +34,7 @@ type PatchBrowser
 
 
 type alias Internals =
-    { username : String
+    { session : Session
     , instrument : Instrument
     , currentPatch : PatchMetadata
     , allPatches : List PatchMetadata
@@ -55,7 +56,7 @@ type EditMode
 
 
 init :
-    { username : String
+    { session : Session
     , instrument : Instrument
     , currentPatch : PatchMetadata
     , allPatches : List PatchMetadata
@@ -63,12 +64,18 @@ init :
     -> PatchBrowser
 init options =
     PatchBrowser
-        { username = options.username
+        { session = options.session
         , instrument = options.instrument
         , currentPatch = options.currentPatch
         , allPatches = options.allPatches
         , editMode = NotEditing
-        , editablePatch = Patch.Metadata.new options.username options.instrument
+        , editablePatch =
+            case Session.creator options.session of
+                Just creator ->
+                    Patch.Metadata.new creator options.instrument
+
+                Nothing ->
+                    Patch.Metadata.init options.instrument
         , categoryFilter = Basses
         , creatorFilter = Creator.factory
         }
@@ -152,11 +159,6 @@ deletePatch patch patchBrowser =
 
 
 -- ACCESS
-
-
-username : PatchBrowser -> String
-username (PatchBrowser internals) =
-    internals.username
 
 
 instrument : PatchBrowser -> Instrument
@@ -246,6 +248,8 @@ view :
     , onDeletePatch : PatchMetadata -> msg
     , onInputFocus : msg
     , onInputLoseFocus : msg
+    , session : Session
+    , onLogin : msg
     }
     -> Element msg
 view options =
@@ -274,10 +278,12 @@ view options =
                     , Font.size 18
                     ]
                     [ text "Presets"
-                    , viewEditorIcons
+                    , viewEditorIconsOrAuth
                         { patchBrowser = options.patchBrowser
                         , onUpdatePatchBrowser = options.onUpdatePatchBrowser
                         , onDeletePatch = options.onDeletePatch
+                        , session = options.session
+                        , onLogin = options.onLogin
                         }
                     ]
                 , row
@@ -320,6 +326,7 @@ view options =
                     [ viewCreatorSelector
                         { patchBrowser = options.patchBrowser
                         , onUpdatePatchBrowser = options.onUpdatePatchBrowser
+                        , session = options.session
                         }
                     ]
                 ]
@@ -327,42 +334,133 @@ view options =
         ]
 
 
-viewEditorIcons :
+viewEditorIconsOrAuth :
     { patchBrowser : PatchBrowser
     , onUpdatePatchBrowser : PatchBrowser -> msg
     , onDeletePatch : PatchMetadata -> msg
+    , session : Session
+    , onLogin : msg
     }
     -> Element msg
-viewEditorIcons options =
-    let
-        patch =
-            currentPatch options.patchBrowser
-    in
-    row
-        [ alignRight
-        , paddingXY 2 0
-        , spacing 3
-        , Font.color Colors.darkGrey
-        ]
-    <|
-        addIcon
-            { patchBrowser = options.patchBrowser
-            , onUpdatePatchBrowser = options.onUpdatePatchBrowser
-            }
-            :: (if Creator.canEdit patch.creator then
-                    [ editIcon
+viewEditorIconsOrAuth options =
+    if Session.isLoading options.session then
+        none
+
+    else
+        case Session.creator options.session of
+            Just creator ->
+                let
+                    patch =
+                        currentPatch options.patchBrowser
+                in
+                row
+                    [ alignRight
+                    , paddingXY 2 0
+                    , spacing 3
+                    , Font.color Colors.darkGrey
+                    ]
+                <|
+                    addIcon
                         { patchBrowser = options.patchBrowser
                         , onUpdatePatchBrowser = options.onUpdatePatchBrowser
+                        , creator = creator
                         }
-                    , deleteIcon
-                        { patchBrowser = options.patchBrowser
-                        , onDeletePatch = options.onDeletePatch
-                        }
-                    ]
+                        :: (if Creator.canEdit patch.creator then
+                                [ editIcon
+                                    { patchBrowser = options.patchBrowser
+                                    , onUpdatePatchBrowser = options.onUpdatePatchBrowser
+                                    }
+                                , deleteIcon
+                                    { patchBrowser = options.patchBrowser
+                                    , onDeletePatch = options.onDeletePatch
+                                    }
+                                ]
 
-                else
-                    []
-               )
+                            else
+                                []
+                           )
+
+            Nothing ->
+                Input.button
+                    [ alignRight
+                    , padding 3
+                    , Border.rounded 5
+                    , mouseOver [ Background.color Colors.lightestPurple ]
+                    ]
+                    { onPress = Just options.onLogin
+                    , label =
+                        row [ spacing 3, Font.size 12 ]
+                            [ image [ Element.width (Element.px 16) ]
+                                { src = "../public/images/fission.svg"
+                                , description = "Fission logo"
+                                }
+                            , column [ paddingEach { top = 3, right = 0, bottom = 0, left = 0 } ] [ text "Store with Fission" ]
+                            ]
+                    }
+
+
+addIcon :
+    { patchBrowser : PatchBrowser
+    , onUpdatePatchBrowser : PatchBrowser -> msg
+    , creator : Creator
+    }
+    -> Element msg
+addIcon { patchBrowser, onUpdatePatchBrowser, creator } =
+    el
+        [ onClick <|
+            onUpdatePatchBrowser <|
+                mapEditablePatch
+                    (\_ ->
+                        Patch.Metadata.new
+                            creator
+                            (instrument patchBrowser)
+                    )
+                <|
+                    mapEditMode
+                        (\_ -> Creating)
+                        patchBrowser
+        ]
+    <|
+        html <|
+            Icons.add 15 Inherit
+
+
+editIcon :
+    { patchBrowser : PatchBrowser
+    , onUpdatePatchBrowser : PatchBrowser -> msg
+    }
+    -> Element msg
+editIcon { patchBrowser, onUpdatePatchBrowser } =
+    el
+        [ onClick <|
+            onUpdatePatchBrowser <|
+                mapEditablePatch
+                    (\_ ->
+                        currentPatch patchBrowser
+                    )
+                <|
+                    mapEditMode
+                        (\_ -> Editing)
+                        patchBrowser
+        ]
+    <|
+        html <|
+            Icons.edit 15 Inherit
+
+
+deleteIcon :
+    { patchBrowser : PatchBrowser
+    , onDeletePatch : PatchMetadata -> msg
+    }
+    -> Element msg
+deleteIcon { patchBrowser, onDeletePatch } =
+    el
+        [ onClick <|
+            onDeletePatch (currentPatch patchBrowser)
+        ]
+    <|
+        html <|
+            Icons.delete 15 Inherit
 
 
 viewFilterPanel :
@@ -761,34 +859,40 @@ viewDescriptionPanel (PatchBrowser internals) =
 viewCreatorSelector :
     { patchBrowser : PatchBrowser
     , onUpdatePatchBrowser : PatchBrowser -> msg
+    , session : Session
     }
     -> Element msg
-viewCreatorSelector { patchBrowser, onUpdatePatchBrowser } =
+viewCreatorSelector { patchBrowser, session, onUpdatePatchBrowser } =
     row
         [ width (px 95), height (px 20) ]
-        [ Input.radioRow
-            [ width fill
-            , Border.width 1
-            , Border.color Colors.lightGrey
-            , Font.size 12
-            ]
-            { onChange =
-                \choice ->
-                    onUpdatePatchBrowser <|
-                        mapCreatorFilter
-                            (\_ -> choice)
-                            patchBrowser
-            , options =
-                [ Input.optionWith
-                    Creator.factory
-                    (creatorOption "Factory")
-                , Input.optionWith
-                    (Creator.user (username patchBrowser))
-                    (creatorOption "User")
-                ]
-            , selected = Just <| creatorFilter patchBrowser
-            , label = Input.labelHidden "Creator options"
-            }
+        [ case Session.creator session of
+            Just creator ->
+                Input.radioRow
+                    [ width fill
+                    , Border.width 1
+                    , Border.color Colors.lightGrey
+                    , Font.size 12
+                    ]
+                    { onChange =
+                        \choice ->
+                            onUpdatePatchBrowser <|
+                                mapCreatorFilter
+                                    (\_ -> choice)
+                                    patchBrowser
+                    , options =
+                        [ Input.optionWith
+                            Creator.factory
+                            (creatorOption "Factory")
+                        , Input.optionWith
+                            creator
+                            (creatorOption "User")
+                        ]
+                    , selected = Just <| creatorFilter patchBrowser
+                    , label = Input.labelHidden "Creator options"
+                    }
+
+            Nothing ->
+                none
         ]
 
 
@@ -809,66 +913,3 @@ creatorOption label =
                     Background.color Colors.lightPurple
             ]
             [ row [ centerX ] [ text label ] ]
-
-
-addIcon :
-    { patchBrowser : PatchBrowser
-    , onUpdatePatchBrowser : PatchBrowser -> msg
-    }
-    -> Element msg
-addIcon { patchBrowser, onUpdatePatchBrowser } =
-    el
-        [ onClick <|
-            onUpdatePatchBrowser <|
-                mapEditablePatch
-                    (\_ ->
-                        Patch.Metadata.new
-                            (username patchBrowser)
-                            (instrument patchBrowser)
-                    )
-                <|
-                    mapEditMode
-                        (\_ -> Creating)
-                        patchBrowser
-        ]
-    <|
-        html <|
-            Icons.add 15 Inherit
-
-
-editIcon :
-    { patchBrowser : PatchBrowser
-    , onUpdatePatchBrowser : PatchBrowser -> msg
-    }
-    -> Element msg
-editIcon { patchBrowser, onUpdatePatchBrowser } =
-    el
-        [ onClick <|
-            onUpdatePatchBrowser <|
-                mapEditablePatch
-                    (\_ ->
-                        currentPatch patchBrowser
-                    )
-                <|
-                    mapEditMode
-                        (\_ -> Editing)
-                        patchBrowser
-        ]
-    <|
-        html <|
-            Icons.edit 15 Inherit
-
-
-deleteIcon :
-    { patchBrowser : PatchBrowser
-    , onDeletePatch : PatchMetadata -> msg
-    }
-    -> Element msg
-deleteIcon { patchBrowser, onDeletePatch } =
-    el
-        [ onClick <|
-            onDeletePatch (currentPatch patchBrowser)
-        ]
-    <|
-        html <|
-            Icons.delete 15 Inherit

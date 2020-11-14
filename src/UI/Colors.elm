@@ -4,6 +4,7 @@ module UI.Colors exposing
     , lightGrey
     , lightPurple
     , lightestGrey
+    , lightestPurple
     , offWhite
     , orange
     , purple
@@ -21,6 +22,11 @@ purple =
 lightPurple : Color
 lightPurple =
     rgb 0.69 0.69 0.81
+
+
+lightestPurple : Color
+lightestPurple =
+    rgb 0.85 0.85 0.91
 
 
 orange : Color

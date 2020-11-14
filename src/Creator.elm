@@ -4,8 +4,8 @@ module Creator exposing
     , decoder
     , encode
     , factory
-    , toString
     , user
+    , username
     )
 
 import Json.Decode as Decode exposing (Decoder)
@@ -24,31 +24,31 @@ factory =
 
 
 user : String -> Creator
-user username =
-    User username
+user uname =
+    User uname
 
 
-canEdit : Creator -> Bool
-canEdit creator =
-    case creator of
-        User username ->
-            True
-
-        _ ->
-            False
-
-
-toString : Creator -> String
-toString creator =
+username : Creator -> String
+username creator =
     case creator of
         Factory ->
-            "Factory"
+            ""
 
         User name ->
             name
 
         Community name ->
             name
+
+
+canEdit : Creator -> Bool
+canEdit creator =
+    case creator of
+        User uname ->
+            True
+
+        _ ->
+            False
 
 
 encode : Creator -> Value
@@ -61,13 +61,13 @@ encode creator =
         User name ->
             Encode.object
                 [ ( "type", Encode.string "user" )
-                , ( "name", Encode.string "name" )
+                , ( "name", Encode.string name )
                 ]
 
         Community name ->
             Encode.object
                 [ ( "type", Encode.string "community" )
-                , ( "name", Encode.string "name" )
+                , ( "name", Encode.string name )
                 ]
 
 

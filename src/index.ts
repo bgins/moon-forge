@@ -1,3 +1,5 @@
+import * as webnative from 'webnative';
+
 // @ts-expect-error
 import { Elm } from './Main.elm';
 import { Keyboard } from './controllers/keyboard';
@@ -5,16 +7,133 @@ import { Luna } from './audio/luna';
 import { Midi } from './controllers/midi';
 
 /*
- * Instantiate the Elm user interface.
- * Create computer keyboard and midi controls.
+ * Instatiate computer keyboard and midi controls.
  */
 const app = Elm.Main.init({
-  node: document.querySelector('main')
+  node: document.querySelector('main'),
 });
 const keyboard = new Keyboard();
 const midi = new Midi();
 let instrument = null;
 let patches = [];
+let fs;
+
+fetch("public/patches.json")
+  .then(response => response.json())
+  .then(ps => {
+    patches = ps;
+    app.ports.onPatches.send(patches);
+  })
+
+const fissionInit = {
+  permissions: {
+    app: {
+      name: 'moon-forge',
+      creator: 'bgins'
+    }
+  }
+};
+
+webnative.initialize(fissionInit).then(async state => {
+  switch (state.scenario) {
+    case webnative.Scenario.AuthSucceeded:
+    case webnative.Scenario.Continuation:
+      app.ports.onAuthChange.send({
+        type: "user",
+        name: state.username
+      })
+
+      fs = state.fs;
+
+      const appPath = fs.appPath();
+      const appDirectoryExists = await fs.exists(appPath);
+
+      if (!appDirectoryExists) {
+        await fs.mkdir(appPath);
+        await fs.publish();
+      }
+
+      // init user patches
+      const instruments = ['luna']
+      const userPatches = await Promise.all(
+        instruments
+          .map(async instrument => {
+            const directory = fs.appPath([`${instrument}`, 'patches'])
+            if (await fs.exists(directory)) {
+              const directoryListing = await fs.ls(directory);
+              const patches = await Promise.all(Object.keys(directoryListing).map(async filename => {
+                const path = fs.appPath([`${instrument}`, 'patches', `${filename}`]);
+                return JSON.parse(await fs.read(path));
+              }));
+              return patches;
+            }
+          })
+      )
+      const allPatches = patches.concat(userPatches.flatMap(ps => ps, []))
+      app.ports.onPatches.send(allPatches);
+
+      break;
+
+    case webnative.Scenario.NotAuthorised:
+    case webnative.Scenario.AuthCancelled:
+      app.ports.onAuthChange.send(null);
+      break;
+  }
+
+  app.ports.login.subscribe(() => {
+    webnative.redirectToLobby(state.permissions);
+  });
+
+
+  /* PERSISTENCE */
+
+  app.ports.loadPatch.subscribe(async metadata => {
+    let patch;
+
+    switch (metadata.creator.type) {
+      case "user":
+        const path = fs.appPath([
+          `${metadata.instrument}`,
+          'patches',
+          `${metadata.name}.json`
+        ]);
+        patch = JSON.parse(await fs.read(path));
+        app.ports.onPatch.send(patch);
+        break;
+
+      case "factory":
+      case "community":
+        patch =
+          patches
+            .filter(p => p.creator.type === metadata.creator.type)
+            .find(p => p.name === metadata.name)
+        app.ports.onPatch.send(patch);
+    }
+  });
+
+  app.ports.storePatch.subscribe(async ({ metadata, patch }) => {
+    const path = fs.appPath([
+      `${metadata.instrument}`,
+      'patches',
+      `${metadata.name}.json`
+    ]);
+
+    await fs.write(path, JSON.stringify({ ...metadata, patch }));
+    await fs.publish();
+  });
+
+  app.ports.deletePatch.subscribe(async metadata => {
+    const path = fs.appPath([
+      `${metadata.instrument}`,
+      'patches',
+      `${metadata.name}.json`
+    ]);
+
+    await fs.rm(path);
+    await fs.publish();
+  });
+});
+
 
 /* PATCH */
 
@@ -30,33 +149,11 @@ app.ports.patchInstrument.subscribe(init => {
   }
 });
 
-app.ports.loadPatches.subscribe(({ instrument, username }) => {
-  if (username) {
-    // user has authenticated
-    // load their patches and factory patches from web native storage
-
-  } else {
-    fetch("public/patches.json")
-      .then(response => response.json())
-      .then(ps => {
-        patches = ps;
-        app.ports.onPatches.send(patches);
-      })
-  }
-});
-
-app.ports.loadPatch.subscribe(metadata => {
-  const patch =
-    patches
-      .filter(p => p.creator.type === metadata.creator.type)
-      .find(p => p.name === metadata.name)
-
-  app.ports.onPatch.send(patch);
-});
-
 app.ports.updateAudioParam.subscribe(param => {
   instrument.updateAudioParam(param);
 });
+
+
 
 /* CONTROLS */
 

@@ -17,6 +17,7 @@ import Oscillator exposing (Oscillator(..))
 import Patch.Category exposing (PatchCategory(..))
 import Patch.Metadata exposing (PatchMetadata)
 import Ports
+import Session exposing (Session)
 import Shared
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
@@ -47,7 +48,8 @@ type alias Params =
 
 
 type alias Model =
-    { patch : Patch
+    { session : Session
+    , patch : Patch
     , controller : Controller
     , patchBrowser : PatchBrowser
     }
@@ -56,13 +58,15 @@ type alias Model =
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
 init shared { params } =
     ( Model
+        shared.session
         Patch.init
         Keyboard
         (PatchBrowser.init
-            { username = "megasaw"
+            { session = shared.session
             , instrument = Luna
             , currentPatch = Patch.Metadata.init Luna
-            , allPatches = []
+            , allPatches =
+                List.filter (\patch -> patch.instrument == Luna) shared.patches
             }
         )
     , Cmd.batch
@@ -70,11 +74,6 @@ init shared { params } =
             Encode.object
                 [ ( "instrument", Instrument.encode Luna )
                 , ( "patch", Patch.encode Patch.init )
-                ]
-        , Ports.loadPatches <|
-            Encode.object
-                [ ( "instrument", Encode.string "luna" )
-                , ( "username", Encode.null )
                 ]
         ]
     )
@@ -106,11 +105,11 @@ type Msg
     | DisableKeyboardController
     | EnableKeyboardController
     | UpdatePatchBrowser PatchBrowser
-    | GotPatches (List PatchMetadata)
     | LoadPatch PatchMetadata
     | GotPatch (Maybe { metadata : PatchMetadata, patch : Patch })
     | StorePatch PatchMetadata
     | DeletePatch PatchMetadata
+    | Login
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -280,14 +279,6 @@ update msg model =
             , Cmd.none
             )
 
-        GotPatches patches ->
-            ( { model
-                | patchBrowser =
-                    PatchBrowser.loadPatches patches model.patchBrowser
-              }
-            , Cmd.none
-            )
-
         LoadPatch metadata ->
             ( model
             , Ports.loadPatch <|
@@ -318,12 +309,19 @@ update msg model =
                 | patchBrowser =
                     PatchBrowser.savePatch metadata model.patchBrowser
               }
-            , case model.controller of
-                MIDI _ ->
-                    Cmd.none
+            , Cmd.batch
+                [ Ports.storePatch <|
+                    Encode.object
+                        [ ( "metadata", Patch.Metadata.encode metadata )
+                        , ( "patch", Patch.encode model.patch )
+                        ]
+                , case model.controller of
+                    MIDI _ ->
+                        Cmd.none
 
-                Keyboard ->
-                    Ports.enableKeyboard ()
+                    Keyboard ->
+                        Ports.enableKeyboard ()
+                ]
             )
 
         DeletePatch metadata ->
@@ -331,8 +329,12 @@ update msg model =
                 | patchBrowser =
                     PatchBrowser.deletePatch metadata model.patchBrowser
               }
-            , Cmd.none
+            , Ports.deletePatch <|
+                Patch.Metadata.encode metadata
             )
+
+        Login ->
+            ( model, Ports.login () )
 
 
 updatePatch : (Patch -> Patch) -> Model -> Model
@@ -390,6 +392,8 @@ view model =
                 , onDeletePatch = DeletePatch
                 , onInputFocus = DisableKeyboardController
                 , onInputLoseFocus = EnableKeyboardController
+                , session = model.session
+                , onLogin = Login
                 }
             ]
         ]
@@ -580,7 +584,15 @@ save model shared =
 
 load : Shared.Model -> Model -> ( Model, Cmd Msg )
 load shared model =
-    ( model, Cmd.none )
+    ( { model
+        | session = shared.session
+        , patchBrowser =
+            PatchBrowser.loadPatches
+                (List.filter (\patch -> patch.instrument == Luna) shared.patches)
+                model.patchBrowser
+      }
+    , Cmd.none
+    )
 
 
 
@@ -591,6 +603,5 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Ports.midiDevicesChanged GotMidiDevices
-        , Ports.gotPatches GotPatches
         , Ports.gotPatch Patch.decoder GotPatch
         ]

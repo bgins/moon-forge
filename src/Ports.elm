@@ -1,19 +1,22 @@
 port module Ports exposing
     ( adjustAudioParam
+    , creatorChanges
+    , deletePatch
     , disableKeyboard
     , enableKeyboard
     , getMidiDevices
     , gotPatch
     , gotPatches
     , loadPatch
-    , loadPatches
+    , login
     , midiDevicesChanged
     , patchInstrument
     , setMidiDevice
+    , storePatch
     )
 
 import Controller exposing (Devices, devicesDecoder)
-import Html.Attributes exposing (disabled)
+import Creator exposing (Creator)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode exposing (Value)
@@ -43,13 +46,30 @@ adjustAudioParam name val =
 
 
 
+-- AUTH
+
+
+port login : () -> Cmd msg
+
+
+port onAuthChange : (Value -> msg) -> Sub msg
+
+
+creatorChanges : (Maybe creator -> msg) -> Decoder creator -> Sub msg
+creatorChanges toMsg decoder =
+    onAuthChange
+        (\val ->
+            Decode.decodeValue decoder val
+                |> Result.toMaybe
+                |> toMsg
+        )
+
+
+
 -- PATCH
 
 
 port patchInstrument : Value -> Cmd msg
-
-
-port loadPatches : Value -> Cmd msg
 
 
 port onPatches : (Encode.Value -> msg) -> Sub msg
@@ -100,6 +120,12 @@ gotPatch patchDecoder toMsg =
 
                     Err err ->
                         Nothing
+
+
+port storePatch : Value -> Cmd msg
+
+
+port deletePatch : Value -> Cmd msg
 
 
 

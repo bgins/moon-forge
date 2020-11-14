@@ -38,11 +38,11 @@ init instrument =
     }
 
 
-new : String -> Instrument -> PatchMetadata
-new username instrument =
+new : Creator -> Instrument -> PatchMetadata
+new user instrument =
     { name = ""
     , instrument = instrument
-    , creator = Creator.user username
+    , creator = user
     , category = Basses
     , tags = []
     , description = ""
