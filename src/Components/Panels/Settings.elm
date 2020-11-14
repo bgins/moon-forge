@@ -43,7 +43,7 @@ view controllerOptions tuningOptions =
                 , Font.family Fonts.quattrocento
                 , Font.size 18
                 ]
-                [ text "Settings" ]
+                [ text "Main Control Panel" ]
             , row
                 [ width fill
                 , height fill
@@ -52,6 +52,7 @@ view controllerOptions tuningOptions =
                 ]
                 [ viewControllerPanel controllerOptions
                 , viewTuningPanel tuningOptions
+                , viewSpectralDeconfabulatorPanel
                 ]
             ]
         ]
@@ -126,7 +127,7 @@ controllerOption label =
                     Background.color Colors.darkestGrey
 
                 Input.Selected ->
-                    Background.color Colors.purple
+                    Background.color Colors.lightPurple
             ]
             [ row [ centerX ] [ text label ] ]
 
@@ -279,7 +280,8 @@ tuningInput options =
         , Border.width 1
         , Border.rounded 1
         , focused
-            [ Border.shadow
+            [ Background.color Colors.offWhite
+            , Border.shadow
                 { offset = ( 0, 0 )
                 , blur = 0
                 , color = rgb 0 0 0
@@ -306,3 +308,27 @@ tuningInput options =
             Nothing
         , text = options.current
         }
+
+
+viewSpectralDeconfabulatorPanel : Element msg
+viewSpectralDeconfabulatorPanel =
+    row
+        [ alignTop
+        , width (px 238)
+        , height (px 109)
+        , padding 5
+        , Border.width 1
+        , Border.color Colors.lightGrey
+        , Border.rounded 2
+        ]
+        [ column
+            [ centerX
+            , centerY
+            , spacing 5
+            , width (px 80)
+            , Font.color Colors.mediumGrey
+            ]
+            [ el [ centerX ] (text "Spectral Deconfabulator")
+            , el [ centerX ] (text "Panel")
+            ]
+        ]

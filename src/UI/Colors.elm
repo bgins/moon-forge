@@ -5,6 +5,7 @@ module UI.Colors exposing
     , lightPurple
     , lightestGrey
     , lightestPurple
+    , mediumGrey
     , offWhite
     , orange
     , purple
@@ -52,6 +53,11 @@ lightestGrey =
 lightGrey : Color
 lightGrey =
     rgb 0.8 0.8 0.8
+
+
+mediumGrey : Color
+mediumGrey =
+    rgb 0.5 0.5 0.5
 
 
 darkGrey : Color

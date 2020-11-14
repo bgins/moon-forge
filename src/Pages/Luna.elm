@@ -356,7 +356,7 @@ view : Model -> Document Msg
 view model =
     { title = "Luna"
     , body =
-        [ column [ centerX, width (px 800), paddingXY 0 30, spacing 5 ]
+        [ column [ centerX, width (px 800), paddingXY 0 30, spacing 7 ]
             [ row
                 [ centerX
                 , height (px 175)

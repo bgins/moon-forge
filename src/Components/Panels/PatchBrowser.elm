@@ -279,11 +279,11 @@ view :
 view options =
     column
         [ centerX
-        , width (px 500)
         , spacing 5
         ]
         [ row
             [ centerX
+            , width (px 525)
             , height (px 300)
             , paddingXY 10 6
             , Background.color Colors.lightestGrey
@@ -301,7 +301,7 @@ view options =
                     , Font.family Fonts.quattrocento
                     , Font.size 18
                     ]
-                    [ text "Presets"
+                    [ text "Module Loader"
                     , viewEditorIconsOrAuth
                         { patchBrowser = options.patchBrowser
                         , onUpdatePatchBrowser = options.onUpdatePatchBrowser
@@ -650,7 +650,7 @@ viewEditorPanel { patchBrowser, onStorePatch, onUpdatePatchBrowser, onInputFocus
             List.any (\p -> patch.name == p.name) (allPatches patchBrowser)
     in
     column
-        [ width (px 190)
+        [ width (px 194)
         , height fill
         , paddingXY 4 5
         , spacing 10
@@ -840,7 +840,7 @@ editorCategoryOption category =
     Input.optionWith category <|
         \optionState ->
             column
-                [ width (px 45)
+                [ width (px 46)
                 , paddingXY 0 3
                 , case optionState of
                     Input.Idle ->
@@ -868,7 +868,7 @@ viewDescriptionPanel (PatchBrowser internals) =
             internals.currentPatch
     in
     column
-        [ width (px 190)
+        [ width (px 196)
         , height fill
         , Border.width 1
         , Border.color Colors.lightGrey
