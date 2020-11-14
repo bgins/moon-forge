@@ -5,7 +5,6 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
-import Html.Events exposing (onClick)
 import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
 import Spa.Page as Page exposing (Page)
@@ -60,7 +59,7 @@ view { params } =
                     [ Font.family Fonts.quattrocento
                     , Font.size 20
                     ]
-                    [ text "You play them on your keyboard using the letter keys and sometimes symbol keys. You can also play using a MIDI controller in Chrome."
+                    [ text "You play them on your keyboard using the letter keys, number keys, and sometimes symbol keys. You can also play using a MIDI controller in Chrome."
                     ]
                 ]
             , column [ width fill, spacing 15 ]

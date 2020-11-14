@@ -1,16 +1,26 @@
 port module Ports exposing
     ( adjustAudioParam
+    , creatorChanges
+    , deletePatch
+    , disableKeyboard
     , enableKeyboard
     , getMidiDevices
-    , initializeInstrument
+    , gotPatch
+    , gotPatches
+    , loadPatch
+    , login
     , midiDevicesChanged
+    , patchInstrument
     , setMidiDevice
+    , storePatch
     )
 
 import Controller exposing (Devices, devicesDecoder)
-import Json.Decode as Decode
+import Creator exposing (Creator)
+import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode exposing (Value)
+import Patch.Metadata exposing (PatchMetadata)
 
 
 
@@ -36,10 +46,86 @@ adjustAudioParam name val =
 
 
 
+-- AUTH
+
+
+port login : () -> Cmd msg
+
+
+port onAuthChange : (Value -> msg) -> Sub msg
+
+
+creatorChanges : (Maybe creator -> msg) -> Decoder creator -> Sub msg
+creatorChanges toMsg decoder =
+    onAuthChange
+        (\val ->
+            Decode.decodeValue decoder val
+                |> Result.toMaybe
+                |> toMsg
+        )
+
+
+
 -- PATCH
 
 
-port initializeInstrument : Value -> Cmd msg
+port patchInstrument : Value -> Cmd msg
+
+
+port onPatches : (Encode.Value -> msg) -> Sub msg
+
+
+gotPatches : (List PatchMetadata -> msg) -> Sub msg
+gotPatches toMsg =
+    onPatches <|
+        \value ->
+            toMsg <|
+                case Decode.decodeValue (Decode.list Patch.Metadata.decoder) value of
+                    Ok patches ->
+                        patches
+
+                    Err err ->
+                        []
+
+
+port loadPatch : Value -> Cmd msg
+
+
+port onPatch : (Encode.Value -> msg) -> Sub msg
+
+
+gotPatch :
+    Decoder a
+    -> (Maybe { metadata : PatchMetadata, patch : a } -> msg)
+    -> Sub msg
+gotPatch patchDecoder toMsg =
+    onPatch <|
+        \value ->
+            toMsg <|
+                case Decode.decodeValue Patch.Metadata.decoder value of
+                    Ok metadata ->
+                        case
+                            Decode.decodeValue
+                                (Decode.field "patch" patchDecoder)
+                                value
+                        of
+                            Ok patch ->
+                                Just
+                                    { metadata = metadata
+                                    , patch = patch
+                                    }
+
+                            Err err ->
+                                Nothing
+
+                    Err err ->
+                        Nothing
+
+
+port storePatch : Value -> Cmd msg
+
+
+port deletePatch : Value -> Cmd msg
 
 
 
@@ -55,13 +141,16 @@ are disabled. When Midi controllers are enabled, the keyboard is disabled.
 port enableKeyboard : () -> Cmd msg
 
 
+port disableKeyboard : () -> Cmd msg
+
+
 {-| Enable, disable, or select Midi devices
 
 getMidiDevices enables Midi control and requests a list of available devices.
 
 setMidiDevice sets the active Midi device in WebMidi.
 
-onMidiDevicesRequest receives a list of available Midi devices.
+onMidiDevices receives a list of available Midi devices.
 
 WebMidi control has not been implemented in all browsers. If WebMidi is not
 available, getMidiDevices will return an empty list.

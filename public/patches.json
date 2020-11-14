@@ -1,0 +1,101 @@
+[
+    {
+        "name": "Bass test",
+        "instrument": "luna",
+        "creator": {
+            "type": "factory"
+        },
+        "category": "basses",
+        "tags": [],
+        "description": "This is a bass test",
+        "public": true,
+        "patch": {
+            "oscillator": "sawtooth",
+            "ampEnvAttack": 0.05,
+            "ampEnvDecay": 0.15,
+            "ampEnvSustain": 0.7,
+            "ampEnvRelease": 0.7,
+            "filter": "lowpass",
+            "filterFreq": 500,
+            "filterQ": 2,
+            "filterEnvAttack": 0.05,
+            "filterEnvDecay": 0.05,
+            "filterEnvSustain": 1,
+            "filterEnvRelease": 0.5,
+            "gain": 0.5,
+            "tuning": {
+              "variant": "equal",
+              "baseFrequency": 261.625,
+              "baseMidiNote": 60,
+              "period": 1200,
+              "divisions": 12
+            }
+        }
+    },
+    {
+        "name": "Bass test 2",
+        "instrument": "luna",
+        "creator": {
+            "type": "factory"
+        },
+        "category": "basses",
+        "tags": [],
+        "description": "This is a second bass test",
+        "public": true,
+        "patch": {
+            "oscillator": "square",
+            "ampEnvAttack": 0.15,
+            "ampEnvDecay": 0.15,
+            "ampEnvSustain": 1,
+            "ampEnvRelease": 0.7,
+            "filter": "lowpass",
+            "filterFreq": 2000,
+            "filterQ": 2,
+            "filterEnvAttack": 0.05,
+            "filterEnvDecay": 0.05,
+            "filterEnvSustain": 1,
+            "filterEnvRelease": 0.5,
+            "gain": 0.5,
+            "tuning": {
+              "variant": "equal",
+              "baseFrequency": 261.625,
+              "baseMidiNote": 60,
+              "period": 1200,
+              "divisions": 12
+            }
+        }
+    },
+    {
+        "name": "Keys test",
+        "instrument": "luna",
+        "creator": {
+            "type": "factory"
+        },
+        "category": "keys",
+        "tags": [],
+        "description": "A keys patch",
+        "public": true,
+        "patch": {
+            "oscillator": "triangle",
+            "ampEnvAttack": 0.15,
+            "ampEnvDecay": 0.15,
+            "ampEnvSustain": 1,
+            "ampEnvRelease": 0.7,
+            "filter": "lowpass",
+            "filterFreq": 2000,
+            "filterQ": 2,
+            "filterEnvAttack": 0.05,
+            "filterEnvDecay": 0.05,
+            "filterEnvSustain": 1,
+            "filterEnvRelease": 0.5,
+            "gain": 0.5,
+            "tuning": {
+              "variant": "equal",
+              "baseFrequency": 261.625,
+              "baseMidiNote": 60,
+              "period": 1200,
+              "divisions": 12
+            }
+        }
+    }
+]
