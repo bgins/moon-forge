@@ -1,3 +1,8 @@
+/* Fix for Chrome slider height overflow */
+input[type='range'] {
+  flex-direction: initial !important;
+}
+
 /* Config */
 :root {
   --sk-size: 5px;
