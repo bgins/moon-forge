@@ -16,6 +16,7 @@ import Element.Border as Border
 import Element.Events exposing (onClick, onFocus, onLoseFocus)
 import Element.Font as Font
 import Element.Input as Input
+import Html.Attributes exposing (class, id)
 import Html.Events exposing (onInput, onMouseOver)
 import Instrument exposing (Instrument)
 import Json.Encode as Encode
@@ -369,7 +370,13 @@ viewEditorIconsOrAuth :
     -> Element msg
 viewEditorIconsOrAuth options =
     if Session.isLoading options.session then
-        none
+        column [ alignRight, width (px 60) ]
+            [ row [ centerX, htmlAttribute <| id "sk-flow" ]
+                [ el [ htmlAttribute <| class "sk-flow-dot" ] none
+                , el [ htmlAttribute <| class "sk-flow-dot" ] none
+                , el [ htmlAttribute <| class "sk-flow-dot" ] none
+                ]
+            ]
 
     else
         case Session.creator options.session of
