@@ -495,13 +495,13 @@ viewFilter model =
             , Controls.sliderGroup
                 [ Controls.slider
                     { label = "Freq"
-                    , scalingFactor = 2000
+                    , scalingFactor = 20000
                     , value = model.patch.filterFreq
                     , toString = Controls.frequencyToString
                     , onChange = AdjustFilterFreq
                     }
                 , Controls.slider
-                    { label = "Q"
+                    { label = "Res"
                     , scalingFactor = 20
                     , value = model.patch.filterQ
                     , toString = Controls.magnitudeToString
