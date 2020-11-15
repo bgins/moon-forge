@@ -138,57 +138,71 @@ webnative.initialize(fissionInit).then(async state => {
 
 /* PATCH */
 
-app.ports.patchInstrument.subscribe(init => {
-  switch (init.instrument) {
+app.ports.patchInstrument.subscribe(options => {
+  switch (options.instrument) {
     case 'luna':
-      instrument = new Luna(init.patch);
-      keyboard.enable(instrument);
-      break;
+      instrument = new Luna(options.patch);
+      patchController(options.controller, instrument);
 
     default:
       console.log('unknown instrument');
   }
 });
 
-app.ports.updateAudioParam.subscribe(param => {
-  instrument.updateAudioParam(param);
-});
+const patchController = (controller, instrument) => {
+  switch (controller) {
+    case 'midi':
+      midi.enable(instrument);
+      break;
 
+    case 'keyboard':
+      keyboard.enable(instrument);
+      break;
 
+    default:
+      keyboard.enable(instrument);
+      break;
+  }
 
-/* CONTROLS */
-
-/*
- * Enable or disable computer keyboard controls from the user interface.
- */
-app.ports.enableKeyboard.subscribe(() => {
-  keyboard.enable(instrument);
-  midi.disable();
-});
-
-app.ports.disableKeyboard.subscribe(() => {
-  keyboard.disable();
-});
-
-/*
- * Enable midi controls from the user interface.
- * getMidiDevices enables midi and sends a list of available devices to the
- * user interface.
- */
-app.ports.getMidiDevices.subscribe(() => {
-  console.log(midi.getInputNames());
-  midi.enable(instrument);
-  keyboard.disable();
-  app.ports.onMidiDevices.send({
-    selected: midi.getSelectedInputName(),
-    available: midi.getInputNames()
+  app.ports.updateAudioParam.subscribe(param => {
+    instrument.updateAudioParam(param);
   });
-});
 
-/*
- * Select a midi device from the user interface.
- */
-app.ports.setMidiDevice.subscribe(device => {
-  console.log(JSON.stringify(device));
-  midi.setInput(device);
-});
+
+
+  /* CONTROLS */
+
+  /*
+   * Enable or disable computer keyboard controls from the user interface.
+   */
+  app.ports.enableKeyboard.subscribe(() => {
+    keyboard.enable(instrument);
+    midi.disable();
+  });
+
+  app.ports.disableKeyboard.subscribe(() => {
+    keyboard.disable();
+  });
+
+  /*
+   * Enable midi controls from the user interface.
+   * getMidiDevices enables midi and sends a list of available devices to the
+   * user interface.
+   */
+  app.ports.getMidiDevices.subscribe(() => {
+    console.log(midi.getInputNames());
+    midi.enable(instrument);
+    keyboard.disable();
+    app.ports.onMidiDevices.send({
+      selected: midi.getSelectedInputName(),
+      available: midi.getInputNames()
+    });
+  });
+
+  /*
+   * Select a midi device from the user interface.
+   */
+  app.ports.setMidiDevice.subscribe(device => {
+    console.log(JSON.stringify(device));
+    midi.setInput(device);
+  });

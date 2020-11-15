@@ -297,6 +297,7 @@ update msg model =
                         Encode.object
                             [ ( "instrument", Instrument.encode metadata.instrument )
                             , ( "patch", Patch.encode patch )
+                            , ( "controller", Controller.encode model.controller )
                             ]
                     )
 
