@@ -1,100 +1,331 @@
 [
     {
-        "name": "Bass test",
+        "name": "Init",
         "instrument": "luna",
         "creator": {
             "type": "factory"
         },
         "category": "basses",
         "tags": [],
-        "description": "This is a bass test",
-        "public": true,
-        "patch": {
-            "oscillator": "sawtooth",
-            "ampEnvAttack": 0.05,
-            "ampEnvDecay": 0.15,
-            "ampEnvSustain": 0.7,
-            "ampEnvRelease": 0.7,
-            "filter": "lowpass",
-            "filterFreq": 500,
-            "filterQ": 2,
-            "filterEnvAttack": 0.05,
-            "filterEnvDecay": 0.05,
-            "filterEnvSustain": 1,
-            "filterEnvRelease": 0.5,
-            "gain": 0.5,
-            "tuning": {
-              "variant": "equal",
-              "baseFrequency": 261.625,
-              "baseMidiNote": 60,
-              "period": 1200,
-              "divisions": 12
-            }
-        }
-    },
-    {
-        "name": "Bass test 2",
-        "instrument": "luna",
-        "creator": {
-            "type": "factory"
-        },
-        "category": "basses",
-        "tags": [],
-        "description": "This is a second bass test",
+        "description": "Init Square",
         "public": true,
         "patch": {
             "oscillator": "square",
-            "ampEnvAttack": 0.15,
-            "ampEnvDecay": 0.15,
+            "ampEnvAttack": 0.05,
+            "ampEnvDecay": 0.05,
             "ampEnvSustain": 1,
-            "ampEnvRelease": 0.7,
+            "ampEnvRelease": 0.5,
             "filter": "lowpass",
-            "filterFreq": 2000,
-            "filterQ": 2,
+            "filterFreq": 20000,
+            "filterQ": 0,
             "filterEnvAttack": 0.05,
             "filterEnvDecay": 0.05,
             "filterEnvSustain": 1,
             "filterEnvRelease": 0.5,
             "gain": 0.5,
             "tuning": {
-              "variant": "equal",
-              "baseFrequency": 261.625,
-              "baseMidiNote": 60,
-              "period": 1200,
-              "divisions": 12
+                "variant": "equal",
+                "baseFrequency": 261.625,
+                "baseMidiNote": 60,
+                "period": 1200,
+                "divisions": 12
             }
         }
     },
     {
-        "name": "Keys test",
+        "name": "Afterthought",
+        "instrument": "luna",
+        "creator": {
+            "type": "factory"
+        },
+        "category": "pads",
+        "tags": [],
+        "description": "A long, wide pondering of tones leaves lingering thoughts. Uses 5-EDO tuning.",
+        "public": true,
+        "patch": {
+            "oscillator": "sine",
+            "ampEnvAttack": 0.5,
+            "ampEnvDecay": 1,
+            "ampEnvSustain": 0.7,
+            "ampEnvRelease": 2.5,
+            "filter": "notch",
+            "filterFreq": 430,
+            "filterQ": 0.8,
+            "filterEnvAttack": 0.05,
+            "filterEnvDecay": 0.05,
+            "filterEnvSustain": 1,
+            "filterEnvRelease": 0.5,
+            "gain": 0.99,
+            "tuning": {
+                "variant": "equal",
+                "baseFrequency": 261.625,
+                "baseMidiNote": 60,
+                "period": 1200,
+                "divisions": 5
+            }
+        }
+    },
+    {
+        "name": "Dusty trail",
+        "instrument": "luna",
+        "creator": {
+            "type": "factory"
+        },
+        "category": "leads",
+        "tags": [],
+        "description": "Leaves a spectral trail in its path.",
+        "public": false,
+        "patch": {
+            "oscillator": "square",
+            "ampEnvAttack": 0.035,
+            "ampEnvDecay": 0.05,
+            "ampEnvSustain": 1,
+            "ampEnvRelease": 1.8,
+            "filter": "notch",
+            "filterFreq": 560,
+            "filterQ": 0.6,
+            "filterEnvAttack": 0.05,
+            "filterEnvDecay": 0.046,
+            "filterEnvSustain": 1,
+            "filterEnvRelease": 0.5,
+            "gain": 0.5,
+            "tuning": {
+                "variant": "equal",
+                "baseFrequency": 261.625,
+                "baseMidiNote": 60,
+                "period": 1200,
+                "divisions": 12
+            }
+        }
+    },
+    {
+        "name": "E-piano",
         "instrument": "luna",
         "creator": {
             "type": "factory"
         },
         "category": "keys",
         "tags": [],
-        "description": "A keys patch",
-        "public": true,
+        "description": "Elecrtic Piano",
+        "public": false,
+        "patch": {
+            "oscillator": "square",
+            "ampEnvAttack": 0.0006552200000000001,
+            "ampEnvDecay": 0.8583120200000001,
+            "ampEnvSustain": 0.23726640999999998,
+            "ampEnvRelease": 1.82,
+            "filter": "lowpass",
+            "filterFreq": 492.2304199999999,
+            "filterQ": 0.4038482,
+            "filterEnvAttack": 0.0014688199999999998,
+            "filterEnvDecay": 0.27691681999999995,
+            "filterEnvSustain": 1,
+            "filterEnvRelease": 0.9344268300000003,
+            "gain": 0.5,
+            "tuning": {
+                "variant": "equal",
+                "baseFrequency": 261.625,
+                "baseMidiNote": 60,
+                "period": 1200,
+                "divisions": 12
+            }
+        }
+    },
+    {
+        "name": "Moon Harp",
+        "instrument": "luna",
+        "creator": {
+            "type": "factory"
+        },
+        "category": "leads",
+        "tags": [],
+        "description": "Play percussively to let it ring out.",
+        "public": false,
+        "patch": {
+            "oscillator": "sawtooth",
+            "ampEnvAttack": 0.05,
+            "ampEnvDecay": 0.18373921999999998,
+            "ampEnvSustain": 0.008482410000000001,
+            "ampEnvRelease": 2.9946024299999996,
+            "filter": "lowpass",
+            "filterFreq": 1031.4882,
+            "filterQ": 18.091824199999998,
+            "filterEnvAttack": 0.05,
+            "filterEnvDecay": 1.64203442,
+            "filterEnvSustain": 0.03884841,
+            "filterEnvRelease": 2.9946024299999996,
+            "gain": 0.9982008099999999,
+            "tuning": {
+                "variant": "equal",
+                "baseFrequency": 261.625,
+                "baseMidiNote": 60,
+                "period": 1200,
+                "divisions": 12
+            }
+        }
+    },
+    {
+        "name": "Hollow Body",
+        "instrument": "luna",
+        "creator": {
+            "type": "factory"
+        },
+        "category": "basses",
+        "tags": [],
+        "description": "Big hollow body when played as a bass.",
+        "public": false,
+        "patch": {
+            "oscillator": "square",
+            "ampEnvAttack": 2e-8,
+            "ampEnvDecay": 0.05,
+            "ampEnvSustain": 1,
+            "ampEnvRelease": 0.5,
+            "filter": "lowpass",
+            "filterFreq": 776.9682,
+            "filterQ": 0.2294082,
+            "filterEnvAttack": 0.38561762,
+            "filterEnvDecay": 0.05,
+            "filterEnvSustain": 0.9045912099999999,
+            "filterEnvRelease": 0.5,
+            "gain": 0.50993881,
+            "tuning": {
+                "variant": "equal",
+                "baseFrequency": 261.625,
+                "baseMidiNote": 60,
+                "period": 1200,
+                "divisions": 12
+            }
+        }
+    },
+    {
+        "name": "Reedy",
+        "instrument": "luna",
+        "creator": {
+            "type": "factory"
+        },
+        "category": "keys",
+        "tags": [],
+        "description": "",
+        "public": false,
         "patch": {
             "oscillator": "triangle",
-            "ampEnvAttack": 0.15,
-            "ampEnvDecay": 0.15,
-            "ampEnvSustain": 1,
-            "ampEnvRelease": 0.7,
-            "filter": "lowpass",
-            "filterFreq": 2000,
-            "filterQ": 2,
+            "ampEnvAttack": 0.05,
+            "ampEnvDecay": 0.52859762,
+            "ampEnvSustain": 0.9045912099999999,
+            "ampEnvRelease": 0.5,
+            "filter": "bandpass",
+            "filterFreq": 1031.4882,
+            "filterQ": 0.2981682,
+            "filterEnvAttack": 1.0515400199999998,
+            "filterEnvDecay": 1.09549602,
+            "filterEnvSustain": 1,
+            "filterEnvRelease": 0.5,
+            "gain": 0.9982008099999999,
+            "tuning": {
+                "variant": "equal",
+                "baseFrequency": 261.625,
+                "baseMidiNote": 60,
+                "period": 1200,
+                "divisions": 12
+            }
+        }
+    },
+    {
+        "name": "Sine Pad",
+        "instrument": "luna",
+        "creator": {
+            "type": "factory"
+        },
+        "category": "pads",
+        "tags": [],
+        "description": "A simple sine wave with a long attack and release.",
+        "public": false,
+        "patch": {
+            "oscillator": "sine",
+            "ampEnvAttack": 1.9964016199999999,
+            "ampEnvDecay": 2e-8,
+            "ampEnvSustain": 0.9982008099999999,
+            "ampEnvRelease": 2.9946024299999996,
+            "filter": "bandpass",
+            "filterFreq": 19964.0162,
+            "filterQ": 2e-7,
             "filterEnvAttack": 0.05,
             "filterEnvDecay": 0.05,
             "filterEnvSustain": 1,
             "filterEnvRelease": 0.5,
+            "gain": 0.9982008099999999,
+            "tuning": {
+                "variant": "equal",
+                "baseFrequency": 261.625,
+                "baseMidiNote": 60,
+                "period": 1200,
+                "divisions": 12
+            }
+        }
+    },
+    {
+        "name": "Acidity",
+        "instrument": "luna",
+        "creator": {
+            "type": "factory"
+        },
+        "category": "basses",
+        "tags": [],
+        "description": "An acid bass. Snarls at low frequencies.",
+        "public": false,
+        "patch": {
+            "oscillator": "sawtooth",
+            "ampEnvAttack": 0.05,
+            "ampEnvDecay": 0.05,
+            "ampEnvSustain": 1,
+            "ampEnvRelease": 0.5,
+            "filter": "lowpass",
+            "filterFreq": 1491.6722000000002,
+            "filterQ": 18.091824199999998,
+            "filterEnvAttack": 0.55989362,
+            "filterEnvDecay": 0.55989362,
+            "filterEnvSustain": 0.38452400999999997,
+            "filterEnvRelease": 0.5,
             "gain": 0.5,
             "tuning": {
-              "variant": "equal",
-              "baseFrequency": 261.625,
-              "baseMidiNote": 60,
-              "period": 1200,
-              "divisions": 12
+                "variant": "equal",
+                "baseFrequency": 261.625,
+                "baseMidiNote": 60,
+                "period": 1200,
+                "divisions": 12
+            }
+        }
+    },
+    {
+        "name": "Mare Vaporum",
+        "instrument": "luna",
+        "creator": {
+            "type": "factory"
+        },
+        "category": "pads",
+        "tags": [],
+        "description": "A placid and lovely pad.",
+        "public": false,
+        "patch": {
+            "oscillator": "triangle",
+            "ampEnvAttack": 0.9663280200000002,
+            "ampEnvDecay": 0.46870561999999993,
+            "ampEnvSustain": 0.6417612100000001,
+            "ampEnvRelease": 2.8,
+            "filter": "highpass",
+            "filterFreq": 169.64820000000003,
+            "filterQ": 5.5989362,
+            "filterEnvAttack": 1.09549602,
+            "filterEnvDecay": 0.49421681999999995,
+            "filterEnvSustain": 1,
+            "filterEnvRelease": 2.8,
+            "gain": 0.99,
+            "tuning": {
+                "variant": "equal",
+                "baseFrequency": 261.625,
+                "baseMidiNote": 60,
+                "period": 1200,
+                "divisions": 12
             }
         }
     }
