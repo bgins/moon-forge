@@ -25,7 +25,7 @@ class Luna implements IInstrument {
   filterOptions: IBiquadFilterOptions;
   filterEnvOptions: IEnvelopeOptions;
   masterGainOptions: IGainOptions;
-  edo: number;
+  divisions: number;
   baseFrequency: number;
   baseMidiNote: number;
 
@@ -76,9 +76,9 @@ class Luna implements IInstrument {
       channelCountMode: 'max',
       channelInterpretation: 'speakers'
     };
-    this.edo = flags.edo;
-    this.baseFrequency = flags.baseFrequency;
-    this.baseMidiNote = flags.baseMidiNote;
+    this.divisions = flags.tuning.divisions;
+    this.baseFrequency = flags.tuning.baseFrequency;
+    this.baseMidiNote = flags.tuning.baseMidiNote;
 
     this.audioContext = new AudioContext();
 
@@ -161,8 +161,8 @@ class Luna implements IInstrument {
       case 'masterGain':
         this.updateMasterGain(param.val);
         break;
-      case 'edo':
-        this.edo = param.val;
+      case 'divisions':
+        this.divisions = param.val;
         break;
       case 'baseFrequency':
         this.baseFrequency = param.val;
@@ -231,7 +231,7 @@ class Luna implements IInstrument {
       // conventionally: [freq = 261.625565 * 2 ** ((midiNote - 60) / 12);]
       // but we allow for arbitrary divisions of the octave here
       const freq =
-        this.baseFrequency * 2 ** ((midiNote - this.baseMidiNote) / this.edo);
+        this.baseFrequency * 2 ** ((midiNote - this.baseMidiNote) / this.divisions);
       console.log(freq);
 
       const oscillator = this.audioContext.createOscillator();

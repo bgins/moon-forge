@@ -25,7 +25,16 @@ toBrowserDocument : Document msg -> Browser.Document msg
 toBrowserDocument doc =
     { title = doc.title
     , body =
-        [ Element.layout [ width fill, height fill ]
+        [ Element.layoutWith
+            { options =
+                [ focusStyle
+                    { borderColor = Just (rgb255 0 0 0)
+                    , backgroundColor = Nothing
+                    , shadow = Nothing
+                    }
+                ]
+            }
+            [ width fill, height fill ]
             (column [ width fill, height fill ] doc.body)
         ]
     }

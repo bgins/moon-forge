@@ -21,6 +21,7 @@ view :
         { tuning : Tuning
         , onUpdateTuning : Tuning -> msg
         , onSetTuning : Tuning -> msg
+        , onInputFocus : msg
         }
     -> Element msg
 view controllerOptions tuningOptions =
@@ -42,7 +43,7 @@ view controllerOptions tuningOptions =
                 , Font.family Fonts.quattrocento
                 , Font.size 18
                 ]
-                [ text "Settings" ]
+                [ text "Main Control Panel" ]
             , row
                 [ width fill
                 , height fill
@@ -51,6 +52,7 @@ view controllerOptions tuningOptions =
                 ]
                 [ viewControllerPanel controllerOptions
                 , viewTuningPanel tuningOptions
+                , viewSpectralDeconfabulatorPanel
                 ]
             ]
         ]
@@ -125,7 +127,7 @@ controllerOption label =
                     Background.color Colors.darkestGrey
 
                 Input.Selected ->
-                    Background.color Colors.purple
+                    Background.color Colors.lightPurple
             ]
             [ row [ centerX ] [ text label ] ]
 
@@ -181,6 +183,7 @@ viewTuningPanel :
     { tuning : Tuning
     , onUpdateTuning : Tuning -> msg
     , onSetTuning : Tuning -> msg
+    , onInputFocus : msg
     }
     -> Element msg
 viewTuningPanel options =
@@ -202,6 +205,7 @@ viewTuningPanel options =
                     , validateEditableParam = Tuning.validateEditableDivisions
                     , mapParam = Tuning.mapDivisions
                     , mapEditableParam = Tuning.mapEditableDivisions
+                    , onInputFocus = options.onInputFocus
                     , onUpdateTuning = options.onUpdateTuning
                     , onSetTuning = options.onSetTuning
                     , toNumber = String.toInt
@@ -214,6 +218,7 @@ viewTuningPanel options =
                     , validateEditableParam = Tuning.validateEditableFrequency
                     , mapParam = Tuning.mapFrequency
                     , mapEditableParam = Tuning.mapEditableFrequency
+                    , onInputFocus = options.onInputFocus
                     , onUpdateTuning = options.onUpdateTuning
                     , onSetTuning = options.onSetTuning
                     , toNumber = String.toFloat
@@ -226,6 +231,7 @@ viewTuningPanel options =
                     , validateEditableParam = Tuning.validateEditableMidiNote
                     , mapParam = Tuning.mapMidiNote
                     , mapEditableParam = Tuning.mapEditableMidiNote
+                    , onInputFocus = options.onInputFocus
                     , onUpdateTuning = options.onUpdateTuning
                     , onSetTuning = options.onSetTuning
                     , toNumber = String.toInt
@@ -244,6 +250,7 @@ tuningInput :
     , validateEditableParam : String -> String
     , mapParam : (number -> number) -> Tuning -> Tuning
     , mapEditableParam : (String -> String) -> Tuning -> Tuning
+    , onInputFocus : msg
     , onUpdateTuning : Tuning -> msg
     , onSetTuning : Tuning -> msg
     , toNumber : String -> Maybe number
@@ -264,6 +271,7 @@ tuningInput options =
                             options.validateEditableParam options.current
                         )
                         options.tuning
+        , Events.onFocus options.onInputFocus
         , width (px 80)
         , paddingXY 2 1
         , spacing 4
@@ -272,7 +280,8 @@ tuningInput options =
         , Border.width 1
         , Border.rounded 1
         , focused
-            [ Border.shadow
+            [ Background.color Colors.offWhite
+            , Border.shadow
                 { offset = ( 0, 0 )
                 , blur = 0
                 , color = rgb 0 0 0
@@ -299,3 +308,27 @@ tuningInput options =
             Nothing
         , text = options.current
         }
+
+
+viewSpectralDeconfabulatorPanel : Element msg
+viewSpectralDeconfabulatorPanel =
+    row
+        [ alignTop
+        , width (px 238)
+        , height (px 109)
+        , padding 5
+        , Border.width 1
+        , Border.color Colors.lightGrey
+        , Border.rounded 2
+        ]
+        [ column
+            [ centerX
+            , centerY
+            , spacing 5
+            , width (px 80)
+            , Font.color Colors.mediumGrey
+            ]
+            [ el [ centerX ] (text "Spectral Deconfabulator")
+            , el [ centerX ] (text "Panel")
+            ]
+        ]

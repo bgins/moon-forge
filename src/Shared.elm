@@ -9,12 +9,17 @@ module Shared exposing
     )
 
 import Browser.Navigation exposing (Key)
+import Creator exposing (Creator)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Html exposing (p)
 import Html.Events exposing (onMouseEnter)
+import Json.Encode as Encode exposing (Value)
+import Patch.Metadata exposing (PatchMetadata)
+import Ports
+import Session exposing (Session)
 import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
 import UI.Colors as Colors
@@ -33,12 +38,14 @@ type alias Flags =
 type alias Model =
     { url : Url
     , key : Key
+    , session : Session
+    , patches : List PatchMetadata
     }
 
 
 init : Flags -> Url -> Key -> ( Model, Cmd Msg )
 init flags url key =
-    ( Model url key
+    ( Model url key Session.loading []
     , Cmd.none
     )
 
@@ -48,19 +55,30 @@ init flags url key =
 
 
 type Msg
-    = ReplaceMe
+    = GotSession Session
+    | GotPatches (List PatchMetadata)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ReplaceMe ->
-            ( model, Cmd.none )
+        GotSession session ->
+            ( { model | session = session }
+            , Cmd.none
+            )
+
+        GotPatches patches ->
+            ( { model | patches = patches }
+            , Cmd.none
+            )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch
+        [ Session.changes GotSession
+        , Ports.gotPatches GotPatches
+        ]
 
 
 
