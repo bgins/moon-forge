@@ -1,6 +1,7 @@
 module UI.Colors exposing
     ( darkGrey
     , darkestGrey
+    , lightBlue
     , lightGrey
     , lightPurple
     , lightestGrey
@@ -12,7 +13,7 @@ module UI.Colors exposing
     , red
     )
 
-import Element exposing (Color, rgb)
+import Element exposing (Color, rgb, rgb255)
 
 
 purple : Color
@@ -68,3 +69,8 @@ darkGrey =
 darkestGrey : Color
 darkestGrey =
     rgb 0.11 0.12 0.14
+
+
+lightBlue : Color
+lightBlue =
+    rgb 0.72 0.8 0.82

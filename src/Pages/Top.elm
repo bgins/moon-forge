@@ -53,13 +53,21 @@ view { params } =
                     [ Font.family Fonts.quattrocento
                     , Font.size 20
                     ]
-                    [ text "Moon Forge is a playground for lunar instruments. We currently have one moon and are building more."
+                    [ text
+                        """Moon Forge is a playground for lunar instruments.
+                        We currently have one moon and are building more.
+                        """
                     ]
                 , paragraph
                     [ Font.family Fonts.quattrocento
                     , Font.size 20
                     ]
-                    [ text "You play them on your keyboard using the letter keys, number keys, and sometimes symbol keys. You can also play using a MIDI controller in Chrome."
+                    [ text
+                        """
+                        You play them on your keyboard using the letter keys,
+                        number keys, and sometimes symbol keys. You can also
+                        play using a MIDI controller in Chrome.
+                        """
                     ]
                 ]
             , column [ width fill, spacing 15 ]
@@ -91,8 +99,116 @@ view { params } =
                         ]
                     ]
                     { url = Route.toString Route.Luna
-                    , label = el [ centerX ] (text "LUNA")
+                    , label =
+                        row
+                            [ width fill
+                            , centerX
+                            ]
+                            [ el
+                                [ centerX
+                                , paddingXY 35 2
+                                , inFront <|
+                                    el
+                                        [ paddingXY 6 3
+                                        , alignRight
+                                        , Background.color Colors.lightBlue
+                                        , Border.rounded 15
+                                        , Font.family Fonts.quattrocento
+                                        , Font.size 10
+                                        ]
+                                        (text "Beta")
+                                ]
+                                (text "LUNA")
+                            ]
                     }
+                ]
+            , column
+                [ width fill, spacing 15 ]
+                [ paragraph
+                    [ Font.center
+                    , Font.family Fonts.cinzel
+                    , Font.size 36
+                    ]
+                    [ text "Store with Fission" ]
+                , paragraph
+                    [ Font.family Fonts.quattrocento
+                    , Font.italic
+                    , Font.size 20
+                    ]
+                    [ text
+                        """We exist beyond the sky and the clouds and rely on the
+                        fabric of constellations to run this place."""
+                    ]
+                , paragraph
+                    [ Font.family Fonts.quattrocento
+                    , Font.size 20
+                    ]
+                    [ newTabLink
+                        [ Font.color Colors.lightPurple
+                        , Font.bold
+                        , Border.widthEach { top = 0, right = 0, bottom = 1, left = 0 }
+                        , Border.color Colors.darkGrey
+                        , mouseOver
+                            [ Border.color Colors.lightPurple
+                            ]
+                        ]
+                        { url = "https://guide.fission.codes/accounts", label = text "Fission" }
+                    , text
+                        """
+                        provides us account and storage services. If you
+                        want to save your creations, we will ask you to "Store with
+                        Fission". A few things you should know about that:
+                        """
+                    ]
+                , row
+                    [ spacing 10
+                    , paddingXY 10 0
+                    , Font.family Fonts.quattrocento
+                    , Font.size 20
+                    ]
+                    [ column [ alignTop ] [ text "○" ]
+                    , paragraph []
+                        [ text
+                            """
+                            Your data is your data. You grant us permission to use
+                            your data in Moon Forge and you can revoke permission
+                            through Fission if you choose to leave us.
+                            """
+                        ]
+                    ]
+                , row
+                    [ spacing 10
+                    , paddingXY 10 0
+                    , Font.family Fonts.quattrocento
+                    , Font.size 20
+                    ]
+                    [ column [ alignTop ] [ text "○" ]
+                    , paragraph []
+                        [ text
+                            """
+                            Fission will ask you to set up an account and link a
+                            second device. We highly recommend you set up a second
+                            device to prevent data loss. Because we do not store
+                            your data on a server, this is on you.
+                            """
+                        ]
+                    ]
+                , row
+                    [ spacing 10
+                    , paddingXY 10 0
+                    , Font.family Fonts.quattrocento
+                    , Font.size 20
+                    ]
+                    [ column [ alignTop ] [ text "○" ]
+                    , paragraph []
+                        [ text
+                            """
+                            We may at some point ask if you would like to share
+                            your creations. This will be opt-in and we will always
+                            ask you first before sharing your data with anyone.
+                            """
+                        ]
+                    ]
                 ]
             ]
         ]
