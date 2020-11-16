@@ -49,3 +49,6 @@ Compile an optimized production build.
 npm run build
 ```
 
+## License
+
+Release v0.3.0 and all earlier releases are available under MIT licnse. Releases newer that v0.3.0 will be assigned an appropriate license in due time and should be considered under copyright until that time.
