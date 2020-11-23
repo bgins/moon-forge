@@ -1,6 +1,6 @@
 {
   "name": "moon-forge",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A forge for lunar instruments",
   "scripts": {
     "start": "npm install && npm run build:dev && npm run dev",
@@ -17,8 +17,7 @@
     "dev:elm-spa": "chokidar src/Pages -c \"elm-spa build .\""
   },
   "keywords": [],
-  "author": "",
-  "license": "",
+  "author": "Brian Ginsburg",
   "devDependencies": {
     "chokidar-cli": "2.1.0",
     "cssnano": "^4.1.10",
