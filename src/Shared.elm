@@ -56,6 +56,8 @@ init flags url key =
 type Msg
     = GotSession Session
     | GotPatches (List PatchMetadata)
+    | GotPatchStored (Maybe PatchMetadata)
+    | GotPatchDeleted (Maybe PatchMetadata)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,12 +73,43 @@ update msg model =
             , Cmd.none
             )
 
+        GotPatchStored maybePatch ->
+            case maybePatch of
+                Just patch ->
+                    ( { model
+                        | patches =
+                            patch
+                                :: List.filter
+                                    (\p -> p.name /= patch.name)
+                                    model.patches
+                      }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        GotPatchDeleted maybePatch ->
+            case maybePatch of
+                Just patch ->
+                    ( { model
+                        | patches =
+                            List.filter (\p -> p /= patch) model.patches
+                      }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Session.changes GotSession
         , Ports.gotPatches GotPatches
+        , Ports.gotPatchStored GotPatchStored
+        , Ports.gotPatchDeleted GotPatchDeleted
         ]
 
 

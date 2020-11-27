@@ -6,6 +6,8 @@ port module Ports exposing
     , enableKeyboard
     , getMidiDevices
     , gotPatch
+    , gotPatchDeleted
+    , gotPatchStored
     , gotPatches
     , loadPatch
     , login
@@ -125,7 +127,31 @@ gotPatch patchDecoder toMsg =
 port storePatch : Value -> Cmd msg
 
 
+port onPatchStored : (Encode.Value -> msg) -> Sub msg
+
+
+gotPatchStored : (Maybe PatchMetadata -> msg) -> Sub msg
+gotPatchStored toMsg =
+    onPatchStored <|
+        \value ->
+            Decode.decodeValue Patch.Metadata.decoder value
+                |> Result.toMaybe
+                |> toMsg
+
+
 port deletePatch : Value -> Cmd msg
+
+
+port onPatchDeleted : (Encode.Value -> msg) -> Sub msg
+
+
+gotPatchDeleted : (Maybe PatchMetadata -> msg) -> Sub msg
+gotPatchDeleted toMsg =
+    onPatchDeleted <|
+        \value ->
+            Decode.decodeValue Patch.Metadata.decoder value
+                |> Result.toMaybe
+                |> toMsg
 
 
 
