@@ -14,6 +14,7 @@ const app = Elm.Main.init({
 });
 const keyboard = new Keyboard();
 const midi = new Midi();
+const instruments = ['luna'];
 let instrument = null;
 let patches = [];
 let fs = null;
@@ -55,7 +56,6 @@ webnative.initialize(fissionInit).then(async state => {
       }
 
       // load user patches
-      const instruments = ['luna']
       const userPatches = await Promise.all(
         instruments
           .map(async instrument => {
@@ -70,7 +70,7 @@ webnative.initialize(fissionInit).then(async state => {
             }
           })
       )
-      const allPatches = patches.concat(userPatches.flatMap(ps => ps, []))
+      const allPatches = patches.concat(userPatches.flatMap(ps => ps, []));
       app.ports.onPatches.send(allPatches);
 
       break;
@@ -121,6 +121,7 @@ webnative.initialize(fissionInit).then(async state => {
 
     await fs.write(path, JSON.stringify({ ...metadata, patch }));
     await fs.publish();
+    app.ports.onPatchStored.send(metadata);
   });
 
   app.ports.deletePatch.subscribe(async metadata => {
@@ -132,6 +133,7 @@ webnative.initialize(fissionInit).then(async state => {
 
     await fs.rm(path);
     await fs.publish();
+    app.ports.onPatchDeleted.send(metadata);
   });
 });
 
@@ -143,6 +145,7 @@ app.ports.patchInstrument.subscribe(options => {
     case 'luna':
       instrument = new Luna(options.patch);
       patchController(options.controller, instrument);
+      break;
 
     default:
       console.log('unknown instrument');
@@ -163,46 +166,47 @@ const patchController = (controller, instrument) => {
       keyboard.enable(instrument);
       break;
   }
+}
 
-  app.ports.updateAudioParam.subscribe(param => {
-    instrument.updateAudioParam(param);
+app.ports.updateAudioParam.subscribe(param => {
+  instrument.updateAudioParam(param);
+});
+
+
+
+/* CONTROLS */
+
+/*
+ * Enable or disable computer keyboard controls from the user interface.
+ */
+app.ports.enableKeyboard.subscribe(() => {
+  keyboard.enable(instrument);
+  midi.disable();
+});
+
+app.ports.disableKeyboard.subscribe(() => {
+  keyboard.disable();
+});
+
+/*
+ * Enable midi controls from the user interface.
+ * getMidiDevices enables midi and sends a list of available devices to the
+ * user interface.
+ */
+app.ports.getMidiDevices.subscribe(() => {
+  console.log(midi.getInputNames());
+  midi.enable(instrument);
+  keyboard.disable();
+  app.ports.onMidiDevices.send({
+    selected: midi.getSelectedInputName(),
+    available: midi.getInputNames()
   });
+});
 
-
-
-  /* CONTROLS */
-
-  /*
-   * Enable or disable computer keyboard controls from the user interface.
-   */
-  app.ports.enableKeyboard.subscribe(() => {
-    keyboard.enable(instrument);
-    midi.disable();
-  });
-
-  app.ports.disableKeyboard.subscribe(() => {
-    keyboard.disable();
-  });
-
-  /*
-   * Enable midi controls from the user interface.
-   * getMidiDevices enables midi and sends a list of available devices to the
-   * user interface.
-   */
-  app.ports.getMidiDevices.subscribe(() => {
-    console.log(midi.getInputNames());
-    midi.enable(instrument);
-    keyboard.disable();
-    app.ports.onMidiDevices.send({
-      selected: midi.getSelectedInputName(),
-      available: midi.getInputNames()
-    });
-  });
-
-  /*
-   * Select a midi device from the user interface.
-   */
-  app.ports.setMidiDevice.subscribe(device => {
-    console.log(JSON.stringify(device));
-    midi.setInput(device);
-  });
+/*
+ * Select a midi device from the user interface.
+ */
+app.ports.setMidiDevice.subscribe(device => {
+  console.log(JSON.stringify(device));
+  midi.setInput(device);
+});
