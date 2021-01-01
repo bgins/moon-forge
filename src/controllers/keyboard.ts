@@ -81,35 +81,34 @@ class Keyboard {
   enable(instrument: IInstrument) {
     this.instrument = instrument;
 
-    if (this.keySubscription) {
-      this.keySubscription.unsubscribe();
-    }
+    if (!this.keySubscription) {
+      this.keySubscription = keyPresses.subscribe(key => {
+        const midiNote = midiNotes[key.code];
 
-    this.keySubscription = keyPresses.subscribe(key => {
-      const midiNote = midiNotes[key.code];
+        if (midiNote !== undefined) {
+          switch (key.type) {
+            case 'keydown':
+              if (!key.shiftKey && !key.ctrlKey && !key.altKey && !key.metaKey) {
+                this.playNote(midiNote);
+              }
+              break;
 
-      if (midiNote !== undefined) {
-        switch (key.type) {
-          case 'keydown':
-            if (!key.shiftKey && !key.ctrlKey && !key.altKey && !key.metaKey) {
-              this.playNote(midiNote);
-            }
-            break;
+            case 'keyup':
+              this.stopNote(midiNote);
+              break;
 
-          case 'keyup':
-            this.stopNote(midiNote);
-            break;
-
-          default:
-            break;
+            default:
+              break;
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   disable() {
     this.instrument = null;
     this.keySubscription.unsubscribe();
+    this.keySubscription = null;
   }
 }
 
