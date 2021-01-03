@@ -50,20 +50,18 @@ class Midi {
   addListeners(input: Input): void {
     input.addListener('noteon', 'all', event => {
       this.instrument.playNote(event.note.number);
-      console.log('midi note on: ' + event.note.number);
     });
 
     input.addListener('noteoff', 'all', event => {
       this.instrument.stopNote(event.note.number);
-      console.log('midi note off: ' + event.note.number);
     });
 
     input.addListener('pitchbend', 'all', event => {
-      console.log('pitchbend: ', event);
+      // console.log('pitchbend: ', event);
     });
 
     input.addListener('controlchange', 'all', event => {
-      console.log('controlchange: ', event);
+      // console.log('controlchange: ', event);
     });
   }
 

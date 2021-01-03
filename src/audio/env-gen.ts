@@ -73,7 +73,7 @@ class Envelope {
         this.valueAtGateClose =
           this.settings.initialLevel +
           (this.settings.attackFinalLevel - this.settings.initialLevel) *
-            ((gateClosedAt - this.gateOpenAt) / this.settings.attackTime);
+          ((gateClosedAt - this.gateOpenAt) / this.settings.attackTime);
       } else if (gateClosedAt >= this.startDecayAt && gateClosedAt < this.startSustainAt) {
         this.valueAtGateClose =
           this.settings.attackFinalLevel *
@@ -105,10 +105,8 @@ class Envelope {
     // reschedule, but this is not done here yet
     if (this.gateOpen) {
       if (retriggerAt < this.startDecayAt) {
-        console.log('retrigger in attack phase');
+        // console.log('retrigger in attack phase');
       } else if (retriggerAt >= this.startDecayAt && retriggerAt < this.startSustainAt) {
-        console.log('retrigger in decay phase');
-
         const currentValue =
           this.settings.attackFinalLevel *
           Math.pow(
@@ -118,13 +116,10 @@ class Envelope {
 
         this.reschedule(retriggerAt, currentValue, newSettings);
       } else {
-        console.log('retrigger in sustain phase');
         this.reschedule(retriggerAt, this.settings.sustainLevel, newSettings);
       }
     } else {
       if (retriggerAt > this.gateClosedAt && retriggerAt <= this.gateClosedAt + this.settings.releaseTime) {
-        console.log('retrigger in release phase');
-
         const currentValue =
           this.valueAtGateClose *
           Math.pow(
@@ -136,7 +131,7 @@ class Envelope {
         this.gateOpen = true;
         this.endAt = Infinity;
       } else {
-        console.log('retrigger after envelope completed');
+        // console.log('retrigger after envelope completed');
       }
     }
   }
@@ -147,8 +142,6 @@ class Envelope {
    * We calculate the time when the attack would have started to get the right ramps.
    */
   private reschedule(retriggerAt: number, currentValue: number, newSettings: IEnvelopeOptions): void {
-    console.log('rescheduling');
-
     // this.targetParam.cancelAndHoldAtTime(retriggerAt);
     this.targetParam.cancelScheduledValues(retriggerAt);
     this.targetParam.setValueAtTime(currentValue, retriggerAt);

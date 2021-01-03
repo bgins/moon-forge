@@ -33,7 +33,6 @@ class Luna implements IInstrument {
    * Construct a new instance of Luna from flags and defaults
    */
   constructor(flags: any) {
-    console.log('New Luna', flags);
     this.oscillatorOptions = {
       type: flags.oscillator,
       detune: 0,
