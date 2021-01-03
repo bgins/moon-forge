@@ -71,14 +71,6 @@ class Keyboard {
   instrument: IInstrument;
   keySubscription: Subscription;
 
-  playNote(midiNote: number) {
-    this.instrument.playNote(midiNote);
-  }
-
-  stopNote(midiNote: number) {
-    this.instrument.stopNote(midiNote);
-  }
-
   enable(instrument: IInstrument) {
     // stop all notes before patching in a new instrument
     if (this.instrument) {
@@ -95,12 +87,12 @@ class Keyboard {
           switch (key.type) {
             case 'keydown':
               if (!key.shiftKey && !key.ctrlKey && !key.altKey && !key.metaKey) {
-                this.playNote(midiNote);
+                this.instrument.playNote(midiNote);
               }
               break;
 
             case 'keyup':
-              this.stopNote(midiNote);
+              this.instrument.stopNote(midiNote);
               break;
 
             default:
