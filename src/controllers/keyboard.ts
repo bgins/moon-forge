@@ -3,8 +3,8 @@ import { distinctUntilChanged, merge, mergeMap, groupBy } from 'rxjs/operators';
 
 import { IInstrument } from '../audio/audio';
 
-const keyDowns = fromEvent<KeyboardEvent>(document, "keydown")
-const keyUps = fromEvent<KeyboardEvent>(document, "keyup")
+const keyDowns = fromEvent<KeyboardEvent>(document, 'keydown');
+const keyUps = fromEvent<KeyboardEvent>(document, 'keyup');
 
 const keyPresses =
   keyDowns.pipe(
@@ -66,6 +66,7 @@ const midiNotes = {
   'Equal': 77,
 }
 
+
 class Keyboard {
   instrument: IInstrument;
   keySubscription: Subscription;
@@ -79,6 +80,11 @@ class Keyboard {
   }
 
   enable(instrument: IInstrument) {
+    // stop all notes before patching in a new instrument
+    if (this.instrument) {
+      this.instrument.stopAllNotes();
+    }
+
     this.instrument = instrument;
 
     if (!this.keySubscription) {
@@ -106,6 +112,10 @@ class Keyboard {
   }
 
   disable() {
+    if (this.instrument) {
+      this.instrument.stopAllNotes();
+    }
+
     this.instrument = null;
     this.keySubscription.unsubscribe();
     this.keySubscription = null;

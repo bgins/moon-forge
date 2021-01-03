@@ -313,6 +313,12 @@ class Luna implements IInstrument {
       oscillator.stop(stopAt);
     }
   }
+
+  stopAllNotes(): void {
+    Object.keys(this.notes).forEach(midiNote => {
+      this.stopNote(+midiNote);
+    });
+  }
 }
 
 export { Luna };

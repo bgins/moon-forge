@@ -4,6 +4,7 @@ import { Envelope } from './env-gen';
 interface IInstrument {
   playNote: (midiNote: number) => void;
   stopNote: (midiNote: number) => void;
+  stopAllNotes: () => void;
 }
 
 interface INote {

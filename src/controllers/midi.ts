@@ -75,11 +75,21 @@ class Midi {
   }
 
   enable(instrument: IInstrument) {
+    // stop all notes before updating the instrument
+    if (this.instrument) {
+      this.instrument.stopAllNotes();
+    }
+
     this.instrument = instrument;
   }
 
   disable() {
+    if (this.instrument) {
+      this.instrument.stopAllNotes();
+    }
+
     this.instrument = null;
+    this.removeListeners(this.input);
   }
 }
 
