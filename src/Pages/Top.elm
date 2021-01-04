@@ -48,7 +48,7 @@ view { params } =
                     , Font.family Fonts.cinzel
                     , Font.size 36
                     ]
-                    [ text "On a Far Off Planet" ]
+                    [ text "A Song of Moons" ]
                 , paragraph
                     [ Font.family Fonts.quattrocento
                     , Font.size 20
@@ -143,7 +143,8 @@ view { params } =
                     [ Font.family Fonts.quattrocento
                     , Font.size 20
                     ]
-                    [ newTabLink
+                    [ text "We use "
+                    , newTabLink
                         [ Font.color Colors.lightPurple
                         , Font.bold
                         , Border.widthEach { top = 0, right = 0, bottom = 1, left = 0 }
@@ -152,10 +153,10 @@ view { params } =
                             [ Border.color Colors.lightPurple
                             ]
                         ]
-                        { url = "https://guide.fission.codes/accounts", label = text "Fission" }
+                        { url = "https://fission.codes", label = text "Fission" }
                     , text
                         """
-                        provides us account and storage services. If you
+                        account and storage services. If you
                         want to save your creations, we will ask you to "Store with
                         Fission". A few things you should know about that:
                         """
@@ -189,7 +190,7 @@ view { params } =
                             Fission will ask you to set up an account and link a
                             second device. We highly recommend you set up a second
                             device to prevent data loss. Because we do not store
-                            your data on a server, this is on you.
+                            your data on a server, we cannot recover it.
                             """
                         ]
                     ]
@@ -208,6 +209,26 @@ view { params } =
                             ask you first before sharing your data with anyone.
                             """
                         ]
+                    ]
+                , paragraph
+                    [ Font.family Fonts.quattrocento
+                    , Font.size 20
+                    ]
+                    [ text "Please see the "
+                    , newTabLink
+                        [ Font.color Colors.lightPurple
+                        , Font.bold
+                        , Border.widthEach { top = 0, right = 0, bottom = 1, left = 0 }
+                        , Border.color Colors.darkGrey
+                        , mouseOver
+                            [ Border.color Colors.lightPurple
+                            ]
+                        ]
+                        { url = "https://guide.fission.codes/accounts", label = text "Fission accounts guide" }
+                    , text
+                        """
+                        for more information on your Fission account.
+                        """
                     ]
                 ]
             ]
