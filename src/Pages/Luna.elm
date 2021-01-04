@@ -74,6 +74,7 @@ init shared { params } =
             Encode.object
                 [ ( "instrument", Instrument.encode Luna )
                 , ( "patch", Patch.encode Patch.init )
+                , ( "controller", Controller.encode Keyboard )
                 ]
         ]
     )

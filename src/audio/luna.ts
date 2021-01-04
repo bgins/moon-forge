@@ -33,7 +33,6 @@ class Luna implements IInstrument {
    * Construct a new instance of Luna from flags and defaults
    */
   constructor(flags: any) {
-    console.log('New Luna', flags);
     this.oscillatorOptions = {
       type: flags.oscillator,
       detune: 0,
@@ -300,16 +299,24 @@ class Luna implements IInstrument {
    * and we may receive a retrigger from the user.
    */
   stopNote(midiNote: number): void {
-    const oscillator = this.notes[midiNote].oscillator;
-    const ampEnv = this.notes[midiNote].ampEnv;
-    const filterEnv = this.notes[midiNote].filterEnv;
+    if (this.notes[midiNote]) {
+      const oscillator = this.notes[midiNote].oscillator;
+      const ampEnv = this.notes[midiNote].ampEnv;
+      const filterEnv = this.notes[midiNote].filterEnv;
 
-    const now = this.audioContext.currentTime;
-    ampEnv.closeGate(now);
-    filterEnv.closeGate(now);
+      const now = this.audioContext.currentTime;
+      ampEnv.closeGate(now);
+      filterEnv.closeGate(now);
 
-    const stopAt = ampEnv.getEndTime();
-    oscillator.stop(stopAt);
+      const stopAt = ampEnv.getEndTime();
+      oscillator.stop(stopAt);
+    }
+  }
+
+  stopAllNotes(): void {
+    Object.keys(this.notes).forEach(midiNote => {
+      this.stopNote(+midiNote);
+    });
   }
 }
 

@@ -194,9 +194,9 @@ app.ports.disableKeyboard.subscribe(() => {
  * user interface.
  */
 app.ports.getMidiDevices.subscribe(() => {
-  console.log(midi.getInputNames());
   midi.enable(instrument);
   keyboard.disable();
+
   app.ports.onMidiDevices.send({
     selected: midi.getSelectedInputName(),
     available: midi.getInputNames()
@@ -207,6 +207,5 @@ app.ports.getMidiDevices.subscribe(() => {
  * Select a midi device from the user interface.
  */
 app.ports.setMidiDevice.subscribe(device => {
-  console.log(JSON.stringify(device));
   midi.setInput(device);
 });
