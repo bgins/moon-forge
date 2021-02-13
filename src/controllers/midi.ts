@@ -66,10 +66,12 @@ class Midi {
   }
 
   removeListeners(input: Input): void {
-    input.removeListener('noteon');
-    input.removeListener('noteoff');
-    input.removeListener('pitchbend');
-    input.removeListener('controlchange');
+    if (input) {
+      input.removeListener('noteon');
+      input.removeListener('noteoff');
+      input.removeListener('pitchbend');
+      input.removeListener('controlchange');
+    }
   }
 
   enable(instrument: IInstrument) {
