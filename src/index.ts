@@ -67,6 +67,8 @@ webnative.initialize(fissionInit).then(async state => {
                 return JSON.parse(await fs.read(path));
               }));
               return patches;
+            } else {
+              return [];
             }
           })
       )
