@@ -1,6 +1,6 @@
 {
   "name": "moon-forge",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "A forge for lunar instruments",
   "scripts": {
     "start": "npm install && npm run build:dev && npm run dev",
