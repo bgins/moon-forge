@@ -231,6 +231,44 @@ view { params } =
                         """
                     ]
                 ]
+            , column
+                [ width fill, spacing 15 ]
+                [ paragraph
+                    [ Font.center
+                    , Font.family Fonts.cinzel
+                    , Font.size 36
+                    ]
+                    [ text "Proudly 0data"
+                    ]
+                , paragraph
+                    [ Font.family Fonts.quattrocento
+                    , Font.size 20
+                    ]
+                    [ text "Moon Forge is proud to be part of the "
+                    , newTabLink
+                        [ Font.color Colors.lightPurple
+                        , Font.bold
+                        , Border.widthEach { top = 0, right = 0, bottom = 1, left = 0 }
+                        , Border.color Colors.darkGrey
+                        , mouseOver
+                            [ Border.color Colors.lightPurple
+                            ]
+                        ]
+                        { url = "https://ring.0data.app/", label = text "0data Appring" }
+                    , text ". 0data apps keep your data under your control. Visit a "
+                    , newTabLink
+                        [ Font.color Colors.lightPurple
+                        , Font.bold
+                        , Border.widthEach { top = 0, right = 0, bottom = 1, left = 0 }
+                        , Border.color Colors.darkGrey
+                        , mouseOver
+                            [ Border.color Colors.lightPurple
+                            ]
+                        ]
+                        { url = "https://ring.0data.app/#random", label = text "random site " }
+                    , text "in the ring!"
+                    ]
+                ]
             ]
         ]
     }
