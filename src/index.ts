@@ -47,24 +47,16 @@ webnative.initialize(fissionInit).then(async state => {
 
       fs = state.fs;
 
-      const appPath = fs.appPath();
-      const appDirectoryExists = await fs.exists(appPath);
-
-      if (!appDirectoryExists) {
-        await fs.mkdir(appPath);
-        await fs.publish();
-      }
-
       // load user patches
       const userPatches = await Promise.all(
         instruments
           .map(async instrument => {
-            const directory = fs.appPath([`${instrument}`, 'patches'])
-            if (await fs.exists(directory)) {
-              const directoryListing = await fs.ls(directory);
+            const directoryPath = fs.appPath(webnative.path.directory(`${instrument}`, 'patches'))
+            if (await fs.exists(directoryPath)) {
+              const directoryListing = await fs.ls(directoryPath);
               const patches = await Promise.all(Object.keys(directoryListing).map(async filename => {
-                const path = fs.appPath([`${instrument}`, 'patches', `${filename}`]);
-                return JSON.parse(await fs.read(path));
+                const filePath = fs.appPath(webnative.path.file(`${instrument}`, 'patches', `${filename}`));
+                return JSON.parse(await fs.read(filePath));
               }));
               return patches;
             } else {
@@ -90,16 +82,22 @@ webnative.initialize(fissionInit).then(async state => {
 
   /* PERSISTENCE */
 
+  const patchPath = (instrument, name) => {
+    return fs.appPath(
+      webnative.path.file(
+        `${instrument}`,
+        'patches',
+        `${name}.json`
+      )
+    );
+  }
+
   app.ports.loadPatch.subscribe(async metadata => {
     let patch;
 
     switch (metadata.creator.type) {
       case "user":
-        const path = fs.appPath([
-          `${metadata.instrument}`,
-          'patches',
-          `${metadata.name}.json`
-        ]);
+        const path = patchPath(metadata.instrument, metadata.name);
         patch = JSON.parse(await fs.read(path));
         app.ports.onPatch.send(patch);
         break;
@@ -115,24 +113,14 @@ webnative.initialize(fissionInit).then(async state => {
   });
 
   app.ports.storePatch.subscribe(async ({ metadata, patch }) => {
-    const path = fs.appPath([
-      `${metadata.instrument}`,
-      'patches',
-      `${metadata.name}.json`
-    ]);
-
+    const path = patchPath(metadata.instrument, metadata.name);
     await fs.write(path, JSON.stringify({ ...metadata, patch }));
     await fs.publish();
     app.ports.onPatchStored.send(metadata);
   });
 
   app.ports.deletePatch.subscribe(async metadata => {
-    const path = fs.appPath([
-      `${metadata.instrument}`,
-      'patches',
-      `${metadata.name}.json`
-    ]);
-
+    const path = patchPath(metadata.instrument, metadata.name);
     await fs.rm(path);
     await fs.publish();
     app.ports.onPatchDeleted.send(metadata);
