@@ -9,7 +9,7 @@ src/Spa/Generated
 
 # parcel
 dist
-.cache
+.parcel-cache
 
 # macOS weird stuff
 .DS_Store
