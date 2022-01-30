@@ -254,7 +254,7 @@ view { params } =
                             [ Border.color Colors.lightPurple
                             ]
                         ]
-                        { url = "https://ring.0data.app/", label = text "0data Appring" }
+                        { url = "https://ring.0data.app/", label = text "0data Doorless Appring" }
                     , text ". 0data apps keep your data under your control. Visit a "
                     , newTabLink
                         [ Font.color Colors.lightPurple
