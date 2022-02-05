@@ -5,6 +5,7 @@ import { Elm } from './Main.elm';
 import { Keyboard } from './controllers/keyboard';
 import { Luna } from './audio/luna';
 import { Midi } from './controllers/midi';
+import patches from '../public/patches.json'
 
 /*
  * Instatiate computer keyboard and midi controls.
@@ -16,16 +17,10 @@ const keyboard = new Keyboard();
 const midi = new Midi();
 const instruments = ['luna'];
 let instrument = null;
-let patches = [];
 let fs = null;
 
-// fetch and load factory patches
-fetch("patches.json")
-  .then(response => response.json())
-  .then(ps => {
-    patches = ps;
-    app.ports.onPatches.send(patches);
-  })
+// Load factory patches
+app.ports.onPatches.send(patches);
 
 const fissionInit = {
   permissions: {
