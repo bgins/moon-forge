@@ -7,9 +7,8 @@ elm-stuff
 # elm-spa
 src/Spa/Generated
 
-# parcel
+# vite
 dist
-.parcel-cache
 
-# macOS weird stuff
+# macOS
 .DS_Store

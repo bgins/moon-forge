@@ -61,7 +61,7 @@ view { params } =
             , row []
                 [ image
                     []
-                    { src = "../public/images/404.jpg"
+                    { src = "./images/404.jpg"
                     , description = "Traveller gazing out to the stars."
                     }
                 ]

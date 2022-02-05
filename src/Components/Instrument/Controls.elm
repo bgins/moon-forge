@@ -62,7 +62,7 @@ verticalSvgButton label =
             ]
         <|
             [ image []
-                { src = "../public/images/" ++ label ++ ".svg"
+                { src = "./images/" ++ label ++ ".svg"
                 , description = label
                 }
             ]

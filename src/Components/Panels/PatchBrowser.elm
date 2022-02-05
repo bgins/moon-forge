@@ -423,7 +423,7 @@ viewEditorIconsOrAuth options =
                     , label =
                         row [ spacing 3, Font.size 12 ]
                             [ image [ Element.width (Element.px 16) ]
-                                { src = "../public/images/fission.svg"
+                                { src = "./images/fission.svg"
                                 , description = "Fission logo"
                                 }
                             , column [ paddingEach { top = 3, right = 0, bottom = 0, left = 0 } ] [ text "Store with Fission" ]

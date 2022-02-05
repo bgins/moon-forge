@@ -15,9 +15,7 @@ at the base frequency.
 
 ## Setup
 
-Install [Elm](https://guide.elm-lang.org/install.html) v0.19.1,[TypeScript](https://www.typescriptlang.org/index.html#download-links), and [Parcel](https://parceljs.org/getting_started.html).
-
-Clone this repository and install its dependencies:
+Install [Elm](https://guide.elm-lang.org/install.html) v0.19.1 and [TypeScript](https://www.typescriptlang.org/index.html#download-links). Clone this repository and install its dependencies:
 
 ```
 npm install

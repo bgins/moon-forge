@@ -20,7 +20,7 @@ let patches = [];
 let fs = null;
 
 // fetch and load factory patches
-fetch("public/patches.json")
+fetch("patches.json")
   .then(response => response.json())
   .then(ps => {
     patches = ps;
