@@ -66,7 +66,7 @@ view { params } =
                         """
                         You play them on your keyboard using the letter keys,
                         number keys, and sometimes symbol keys. You can also
-                        play using a MIDI controller in Chrome.
+                        play using a MIDI controller.
                         """
                     ]
                 ]
