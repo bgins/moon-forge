@@ -413,23 +413,7 @@ viewEditorIconsOrAuth options =
                            )
 
             Nothing ->
-                Input.button
-                    [ alignRight
-                    , padding 3
-                    , Border.rounded 5
-                    , mouseOver [ Background.color Colors.lightestPurple ]
-                    ]
-                    { onPress = Just options.onLogin
-                    , label =
-                        row [ spacing 3, Font.size 12 ]
-                            [ image [ Element.width (Element.px 16) ]
-                                { src = "./images/fission.svg"
-                                , description = "Fission logo"
-                                }
-                            , column [ paddingEach { top = 3, right = 0, bottom = 0, left = 0 } ] [ text "Store with Fission" ]
-                            ]
-                    }
-
+                row [] []
 
 addIcon :
     { patchBrowser : PatchBrowser
